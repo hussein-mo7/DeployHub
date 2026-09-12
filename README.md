@@ -56,7 +56,8 @@ DeployHub/
 ├── docker-compose.yml  # Local PostgreSQL + Redis
 ├── SRS.md              # Software requirements (MVP)
 ├── ARCHITECTURE.md     # System architecture
-└── PROGRESS.md         # Implementation progress tracker
+├── PROGRESS.md         # Implementation progress tracker
+└── TESTING.md          # Postman testing guide (phase by phase)
 ```
 
 ---
@@ -153,6 +154,7 @@ See [`PROGRESS.md`](./PROGRESS.md) for current implementation status.
 | [SRS.md](./SRS.md) | Functional and non-functional requirements |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, folder structure, tech decisions |
 | [PROGRESS.md](./PROGRESS.md) | Phased implementation tracker |
+| [TESTING.md](./TESTING.md) | Postman API testing guide |
 
 ---
 

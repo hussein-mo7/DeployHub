@@ -53,9 +53,13 @@ User
 ### 4.1 Authentication
 
 - Register with name, email, password
-- Login, logout, protected routes
+- **Email verification** — send link on register; user opens link and clicks **Verify** button (no auto-verify on link open)
+- Login only after email is verified
+- Logout and protected routes
+- **Access token** (short-lived) + **refresh token** (long-lived), both in HTTP-only cookies
+- Refresh token rotation on `/api/auth/refresh`
 - Passwords hashed — never stored in plaintext
-- Secure session (HTTP-only cookies)
+- Resend verification email option
 
 ### 4.2 GitHub
 

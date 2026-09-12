@@ -54,7 +54,14 @@ Route → Controller → Service → Prisma / Redis / GitHub / Socket.IO
 ## 4. Communication
 
 ### REST API
-All CRUD and actions. JWT stored in HTTP-only cookie.
+All CRUD and actions. Auth uses two HTTP-only cookies:
+
+| Cookie | Purpose | Lifetime |
+|--------|---------|----------|
+| `deployhub_access_token` | JWT for API requests | 15 minutes |
+| `deployhub_refresh_token` | Opaque token (hashed in DB) | 7 days |
+
+Refresh via `POST /api/auth/refresh` with token rotation. Frontend axios interceptor retries on 401.
 
 ### User WebSocket (browser)
 Real-time deployment logs. Socket.IO rooms: `deployment:{id}`
@@ -132,9 +139,11 @@ User
 | Area | Approach |
 |------|----------|
 | Passwords | bcrypt |
-| User auth | JWT in HTTP-only cookie |
+| Session | Access JWT + refresh token in HTTP-only cookies |
+| Refresh tokens | Hashed in PostgreSQL, rotated on refresh, revoked on logout |
+| Email verify | Token hashed in DB; link opens page; user clicks Verify button |
+| Email delivery | Resend API (dev: link logged to console) |
 | Agent auth | Token per agent, hashed at rest |
-| Registration | One-time short-lived token |
 | Secrets | AES-256-GCM encryption at rest, masked in UI |
 | Agent | Structured commands only — no remote shell |
 
@@ -221,7 +230,8 @@ DeployHub/
 
 | Decision | Choice |
 |----------|--------|
-| Auth | JWT in HTTP-only cookie |
+| Auth | Access + refresh tokens in HTTP-only cookies |
+| Email verify | Manual button click after opening email link |
 | Build order | Backend API first, then frontend UI |
 | Log storage | PostgreSQL + Socket.IO live stream |
 | Webhooks | `github/` module + webhook worker |

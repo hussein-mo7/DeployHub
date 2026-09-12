@@ -2,6 +2,12 @@ import type { Server as HttpServer } from "http";
 import { Server } from "socket.io";
 import { env } from "./env.js";
 import { logger } from "../utils/logger.js";
+import {
+  authenticateAgentSocket,
+  handleAgentConnect,
+  handleAgentDisconnect,
+  handleAgentHeartbeat,
+} from "../services/agent-socket.service.js";
 
 let io: Server | null = null;
 
@@ -21,10 +27,35 @@ export function initSocketIO(httpServer: HttpServer): Server {
   });
 
   const agentNamespace = io.of("/agent");
-  agentNamespace.on("connection", (socket) => {
-    logger.info(`Agent socket connected: ${socket.id}`);
-    socket.on("disconnect", () => {
-      logger.info(`Agent socket disconnected: ${socket.id}`);
+
+  agentNamespace.use(async (socket, next) => {
+    try {
+      const serverId = await authenticateAgentSocket(socket.handshake.auth.token);
+
+      if (!serverId) {
+        next(new Error("Agent authentication failed"));
+        return;
+      }
+
+      socket.data.serverId = serverId;
+      next();
+    } catch (error) {
+      next(error as Error);
+    }
+  });
+
+  agentNamespace.on("connection", async (socket) => {
+    const serverId = socket.data.serverId as string;
+
+    await handleAgentConnect(serverId, socket.id);
+    socket.emit("CONNECTED", { serverId, timestamp: new Date().toISOString() });
+
+    socket.on("HEARTBEAT", async () => {
+      await handleAgentHeartbeat(serverId);
+    });
+
+    socket.on("disconnect", async () => {
+      await handleAgentDisconnect(serverId);
     });
   });
 
@@ -37,4 +68,8 @@ export function getIO(): Server {
     throw new Error("Socket.IO not initialized");
   }
   return io;
+}
+
+export function getAgentNamespace() {
+  return getIO().of("/agent");
 }
