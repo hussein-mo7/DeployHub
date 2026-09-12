@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Server,
@@ -6,10 +6,12 @@ import {
   Rocket,
   Settings,
   ChevronLeft,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
 import { useUIStore } from "@/stores/ui.store";
+import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -22,6 +24,13 @@ const navItems = [
 
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUIStore();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate(ROUTES.LOGIN);
+  };
 
   return (
     <aside
@@ -69,6 +78,23 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      <div className="border-t border-sidebar-border p-3">
+        {!sidebarCollapsed && user && (
+          <p className="mb-2 truncate px-3 text-xs text-sidebar-foreground/60">{user.email}</p>
+        )}
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-3 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white",
+            sidebarCollapsed && "justify-center px-2",
+          )}
+          onClick={() => void handleLogout()}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!sidebarCollapsed && <span>Log out</span>}
+        </Button>
+      </div>
     </aside>
   );
 }

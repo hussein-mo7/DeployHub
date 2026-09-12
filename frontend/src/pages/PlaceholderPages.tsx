@@ -37,29 +37,3 @@ export function DeploymentsPage() {
 export function SettingsPage() {
   return <PlaceholderPage title="Settings" description="Account and integration settings." />;
 }
-
-export function LoginPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign in</CardTitle>
-          <CardDescription>Authentication will be added in Phase 2.</CardDescription>
-        </CardHeader>
-      </Card>
-    </div>
-  );
-}
-
-export function RegisterPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create account</CardTitle>
-          <CardDescription>Registration will be added in Phase 2.</CardDescription>
-        </CardHeader>
-      </Card>
-    </div>
-  );
-}

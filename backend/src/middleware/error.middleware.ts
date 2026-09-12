@@ -5,6 +5,7 @@ export class AppError extends Error {
     public statusCode: number,
     message: string,
     public code?: string,
+    public details?: unknown,
   ) {
     super(message);
     this.name = "AppError";
@@ -22,6 +23,7 @@ export function errorMiddleware(
       error: {
         code: error.code ?? "APP_ERROR",
         message: error.message,
+        ...(error.details ? { details: error.details } : {}),
       },
     });
     return;

@@ -8,6 +8,12 @@ const envSchema = z.object({
   CLIENT_URL: z.string().url(),
   JWT_SECRET: z.string().min(1),
   ENCRYPTION_KEY: z.string().min(1),
+  EMAIL_FROM: z.string().min(1).default("DeployHub <onboarding@resend.dev>"),
+  RESEND_API_KEY: z.string().optional(),
+  GITHUB_APP_ID: z.string().optional(),
+  GITHUB_APP_SLUG: z.string().optional(),
+  GITHUB_APP_PRIVATE_KEY: z.string().optional(),
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

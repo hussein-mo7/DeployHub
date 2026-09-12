@@ -3,6 +3,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { healthRoutes } from "./modules/health/health.routes.js";
+import { authRoutes } from "./modules/auth/auth.routes.js";
+import { githubRoutes } from "./modules/github/github.routes.js";
+import { serversRoutes } from "./modules/servers/servers.routes.js";
+import { agentsRoutes } from "./modules/agents/agents.routes.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 
 export const app = express();
@@ -21,5 +25,9 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/github", githubRoutes);
+app.use("/api/servers", serversRoutes);
+app.use("/api/agents", agentsRoutes);
 
 app.use(errorMiddleware);

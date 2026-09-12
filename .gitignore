@@ -46,3 +46,12 @@ backend/prisma/*.db-journal
 # Misc
 *.pem
 .cache/
+trace*.txt
+
+# Postman (local only — never push to GitHub)
+postman/
+*.postman_collection.json
+*.postman_environment.json
+
+# Cursor MCP config with secrets (use mcp.json.example as template)
+.cursor/mcp.json

@@ -2,31 +2,41 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { ROUTES } from "@/constants/routes";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
+import { LoginPage } from "@/pages/auth/LoginPage";
+import { RegisterPage } from "@/pages/auth/RegisterPage";
+import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
+import { VerifyEmailSentPage } from "@/pages/auth/VerifyEmailSentPage";
 import {
   DeploymentsPage,
-  LoginPage,
   ProjectsPage,
-  RegisterPage,
   ServersPage,
   SettingsPage,
 } from "@/pages/PlaceholderPages";
+import { ProtectedRoute, PublicRoute } from "@/routes/ProtectedRoute";
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-      <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+      <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+      <Route path={ROUTES.VERIFY_EMAIL_SENT} element={<VerifyEmailSentPage />} />
 
-      <Route element={<AppShell />}>
-        <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-        <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-        <Route path={ROUTES.SERVERS} element={<ServersPage />} />
-        <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
-        <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
-        <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+      <Route element={<PublicRoute />}>
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppShell />}>
+          <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+          <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+          <Route path={ROUTES.SERVERS} element={<ServersPage />} />
+          <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
+          <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
+          <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
     </Routes>
   );
 }

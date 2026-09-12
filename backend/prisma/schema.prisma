@@ -7,4 +7,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Domain models are added in Phase 2+
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  password        String
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  githubInstallation      GitHubInstallation?
+  servers                 Server[]
+}
+
+enum ServerStatus {
+  UNREGISTERED
+  CONNECTING
+  ONLINE
+  OFFLINE
+  UNHEALTHY
+}
+
+model Server {
+  id                         String       @id @default(cuid())
+  userId                     String
+  name                       String
+  description                String?
+  status                     ServerStatus @default(UNREGISTERED)
+  agentTokenHash             String?      @unique
+  registrationTokenHash      String?      @unique
+  registrationTokenExpiresAt DateTime?
+  lastSeenAt                 DateTime?
+  registeredAt               DateTime?
+  createdAt                  DateTime     @default(now())
+  updatedAt                  DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model GitHubInstallation {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  installationId      Int      @unique
+  accountLogin        String
+  accountType         String
+  repositorySelection String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([installationId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
