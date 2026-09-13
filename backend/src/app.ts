@@ -7,6 +7,7 @@ import { authRoutes } from "./modules/auth/auth.routes.js";
 import { githubRoutes } from "./modules/github/github.routes.js";
 import { serversRoutes } from "./modules/servers/servers.routes.js";
 import { agentsRoutes } from "./modules/agents/agents.routes.js";
+import { projectsRoutes } from "./modules/projects/projects.routes.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 
 export const app = express();
@@ -29,5 +30,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/servers", serversRoutes);
 app.use("/api/agents", agentsRoutes);
+app.use("/api/projects", projectsRoutes);
 
 app.use(errorMiddleware);

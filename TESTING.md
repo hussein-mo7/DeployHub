@@ -303,7 +303,112 @@ Stop the agent → status should become `OFFLINE`.
 
 ---
 
-## Phase 5+ — Coming soon
+## Phase 5 — Projects
+
+**Prerequisites:** Run **0 — Session → Login** first. Run `npm run db:push` after pull. You need at least one **server** (`serverId` in env).
+
+### Test 5.1 Create project
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/projects` |
+| **Body** | See below |
+| **Expected** | `201` — `project` with `repoFullName` |
+
+```json
+{
+  "name": "My App",
+  "description": "Full-stack application",
+  "repoOwner": "{{repoOwner}}",
+  "repoName": "{{repoName}}"
+}
+```
+
+Save `project.id` as `projectId` in Postman env.
+
+### Test 5.2 List / get projects
+
+| | |
+|---|---|
+| **GET** | `{{baseUrl}}/api/projects` |
+| **Expected** | `200` — `{ "projects": [...] }` |
+
+| | |
+|---|---|
+| **GET** | `{{baseUrl}}/api/projects/{{projectId}}` |
+| **Expected** | `200` — project with `services` and `environments` arrays |
+
+### Test 5.3 Create service
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/services` |
+| **Body** | `{ "name": "API", "deploymentMethod": "DOCKERFILE" }` |
+| **Expected** | `201` — save `service.id` as `serviceId` |
+
+**Compose example:**
+
+```json
+{
+  "name": "Stack",
+  "deploymentMethod": "COMPOSE",
+  "composeFilePath": "docker-compose.yml"
+}
+```
+
+**Image example:**
+
+```json
+{
+  "name": "Web",
+  "deploymentMethod": "IMAGE",
+  "imageName": "nginx:latest"
+}
+```
+
+### Test 5.4 Create environment
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/environments` |
+| **Body** | See below |
+| **Expected** | `201` — environment with `serverName`, `serverStatus`, `branch` |
+
+```json
+{
+  "name": "Production",
+  "serverId": "{{serverId}}",
+  "branch": "main",
+  "autoDeployEnabled": false
+}
+```
+
+Save `environment.id` as `environmentId`.
+
+### Test 5.5 List services / environments
+
+| | |
+|---|---|
+| **GET** | `{{baseUrl}}/api/projects/{{projectId}}/services` |
+| **GET** | `{{baseUrl}}/api/projects/{{projectId}}/environments` |
+
+### Test 5.6 Update / delete (optional)
+
+| | |
+|---|---|
+| **PATCH** | `{{baseUrl}}/api/projects/{{projectId}}` — `{ "name": "Renamed App" }` |
+| **PATCH** | `{{baseUrl}}/api/projects/{{projectId}}/services/{{serviceId}}` |
+| **PATCH** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}` |
+| **DELETE** | services → environments → project (in that order if cleaning up) |
+
+**Phase 5 pass:** Create project → add service → add environment → get project detail shows all three.
+
+---
+
+## Phase 6+ — Coming soon
 
 Tests will be added here as each phase is built. See `PROGRESS.md` for implementation status.
 

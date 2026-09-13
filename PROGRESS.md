@@ -1,6 +1,6 @@
 # DeployHub — Progress
 
-**Updated:** 2026-09-12 · **Next:** Phase 4 Postman testing (backend ready)
+**Updated:** 2026-09-13 · **Next:** Phase 5 Postman testing
 
 ---
 
@@ -8,6 +8,7 @@
 
 - **Backend first, then frontend** for each feature
 - Finish backend + Postman testing before frontend for that phase
+- **UI polish deferred** — functional pages only until backend phases are done; design pass comes later
 - One phase at a time — verify before moving on
 - Mark `[x]` only when done and tested
 
@@ -60,31 +61,34 @@
 
 ---
 
-## Phase 4 — Servers & Agent (backend ready — test in Postman)
+## Phase 4 — Servers & Agent ✅
 
 - [x] Server model + CRUD API
 - [x] Registration token + agent register API
 - [x] Agent WebSocket auth + online/offline status
 - [x] install.sh endpoint
-- [x] Postman Phase 4 folder (4.0–4.4) in cloud collection
-- [ ] **Backend Postman tests pass** ← current focus
-- [ ] Servers UI (after backend verified)
-
-**Run once:** `npm run db:push` (creates `Server` table)
+- [x] Postman Phase 4 folder in cloud collection
+- [x] Backend Postman tests pass (agent ONLINE verified)
+- [x] Servers UI (functional — polish later)
 
 **Testing (Postman):** see `TESTING.md` → Phase 4
 
-- [ ] 4.0 Session Login → 4.1 Create server
-- [ ] 4.2 Register agent
-- [ ] 4.3 Get server / list servers
-- [ ] 4.4 Agent connects → status ONLINE
+- [x] Session Login → 4.1 Create server
+- [x] 4.2 Register agent
+- [x] 4.3 Get server / list servers
+- [x] 4.4 Agent connects → status ONLINE
 
 ---
 
-## Phase 5 — Projects
+## Phase 5 — Projects ← current
 
-- [ ] Project, Service, Environment models + API
-- [ ] Create project flow + project details UI
+- [x] Project, Service, Environment models + API
+- [ ] Postman tests pass
+- [ ] Create project flow + project details UI (functional only)
+
+**Run once:** `npm run db:push` (creates Project/Service/Environment tables)
+
+**Testing (Postman):** see `TESTING.md` → Phase 5
 
 ---
 
