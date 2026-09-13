@@ -22,10 +22,6 @@ function PlaceholderPage({ title, description }: { title: string; description: s
   );
 }
 
-export function ProjectsPage() {
-  return <PlaceholderPage title="Projects" description="Create and configure deployable projects." />;
-}
-
 export function DeploymentsPage() {
   return <PlaceholderPage title="Deployments" description="View deployment history and live logs." />;
 }

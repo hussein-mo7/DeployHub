@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/constants/routes";
 import { checkHealth } from "@/services/api";
+import * as projectsService from "@/services/projects.service";
 import * as serversService from "@/services/servers.service";
 
 export function DashboardPage() {
@@ -17,7 +18,13 @@ export function DashboardPage() {
     queryFn: serversService.listServers,
   });
 
+  const { data: projectsData } = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectsService.listProjects,
+  });
+
   const servers = serversData?.servers ?? [];
+  const projects = projectsData?.projects ?? [];
   const onlineCount = servers.filter((server) => server.status === "ONLINE").length;
 
   return (
@@ -49,10 +56,22 @@ export function DashboardPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Projects</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
+              <CardTitle className="text-3xl">{projects.length}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">No projects configured yet</p>
+              <p className="text-xs text-muted-foreground">
+                {projects.length === 0
+                  ? "No projects configured yet"
+                  : `${projects.length} project${projects.length === 1 ? "" : "s"} linked`}
+              </p>
+              {projects.length > 0 && (
+                <Link
+                  to={ROUTES.PROJECTS}
+                  className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+                >
+                  View projects
+                </Link>
+              )}
             </CardContent>
           </Card>
           <Card>

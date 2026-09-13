@@ -6,11 +6,9 @@ import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
 import { VerifyEmailSentPage } from "@/pages/auth/VerifyEmailSentPage";
-import {
-  DeploymentsPage,
-  ProjectsPage,
-  SettingsPage,
-} from "@/pages/PlaceholderPages";
+import { DeploymentsPage, SettingsPage } from "@/pages/PlaceholderPages";
+import { ProjectDetailPage } from "@/pages/projects/ProjectDetailPage";
+import { ProjectsPage } from "@/pages/projects/ProjectsPage";
 import { ServerDetailPage } from "@/pages/servers/ServerDetailPage";
 import { ServersPage } from "@/pages/servers/ServersPage";
 import { ProtectedRoute, PublicRoute } from "@/routes/ProtectedRoute";
@@ -33,6 +31,7 @@ export function AppRoutes() {
           <Route path={ROUTES.SERVERS} element={<ServersPage />} />
           <Route path={ROUTES.SERVER_DETAIL} element={<ServerDetailPage />} />
           <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
+          <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectDetailPage />} />
           <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
           <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
         </Route>

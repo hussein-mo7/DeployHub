@@ -1,6 +1,6 @@
 # DeployHub — Progress
 
-**Updated:** 2026-09-13 · **Next:** Phase 5 Postman testing
+**Updated:** 2026-09-13 · **Next:** Phase 6 backend (env variables)
 
 ---
 
@@ -80,11 +80,11 @@
 
 ---
 
-## Phase 5 — Projects ← current
+## Phase 5 — Projects ✅
 
 - [x] Project, Service, Environment models + API
-- [ ] Postman tests pass
-- [ ] Create project flow + project details UI (functional only)
+- [x] Postman tests pass
+- [x] Create project flow + project details UI (functional only)
 
 **Run once:** `npm run db:push` (creates Project/Service/Environment tables)
 
