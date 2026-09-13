@@ -9,9 +9,10 @@ import { VerifyEmailSentPage } from "@/pages/auth/VerifyEmailSentPage";
 import {
   DeploymentsPage,
   ProjectsPage,
-  ServersPage,
   SettingsPage,
 } from "@/pages/PlaceholderPages";
+import { ServerDetailPage } from "@/pages/servers/ServerDetailPage";
+import { ServersPage } from "@/pages/servers/ServersPage";
 import { ProtectedRoute, PublicRoute } from "@/routes/ProtectedRoute";
 
 export function AppRoutes() {
@@ -30,6 +31,7 @@ export function AppRoutes() {
           <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
           <Route path={ROUTES.SERVERS} element={<ServersPage />} />
+          <Route path={ROUTES.SERVER_DETAIL} element={<ServerDetailPage />} />
           <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
           <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
           <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />

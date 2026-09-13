@@ -22,10 +22,6 @@ function PlaceholderPage({ title, description }: { title: string; description: s
   );
 }
 
-export function ServersPage() {
-  return <PlaceholderPage title="Servers" description="Manage your Linux VPS servers and agents." />;
-}
-
 export function ProjectsPage() {
   return <PlaceholderPage title="Projects" description="Create and configure deployable projects." />;
 }
