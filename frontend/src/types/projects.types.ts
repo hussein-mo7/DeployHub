@@ -25,6 +25,9 @@ export interface ServiceSummary {
   composeFilePath: string;
   imageName: string | null;
   buildContext: string;
+  port: number | null;
+  healthCheckPath: string;
+  healthCheckEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,4 +119,6 @@ export interface EnvVariableDraft {
   key: string;
   value: string;
   isSecret: boolean;
+  /** Secret exists on server; empty value field means keep unchanged */
+  hasStoredSecret?: boolean;
 }

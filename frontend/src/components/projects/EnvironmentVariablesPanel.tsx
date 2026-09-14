@@ -28,6 +28,7 @@ function variablesToDrafts(
     key: variable.key,
     value: variable.isSecret ? "" : (variable.value ?? ""),
     isSecret: variable.isSecret,
+    hasStoredSecret: variable.isSecret && variable.hasValue,
   }));
 }
 
@@ -58,7 +59,7 @@ export function EnvironmentVariablesPanel({
     if (data?.variables) {
       setRows(variablesToDrafts(data.variables));
     }
-  }, [data?.variables]);
+  }, [data]);
 
   const saveMutation = useMutation({
     mutationFn: (redeploy: boolean) => {
@@ -89,14 +90,15 @@ export function EnvironmentVariablesPanel({
       setFieldErrors({});
       return projectsService.saveEnvironmentVariables(projectId, environmentId, parsed.data);
     },
-    onSuccess: (_result, redeploy) => {
+    onSuccess: (result, redeploy) => {
       setActionError(null);
       setSuccessMessage(
         redeploy
           ? "Variables saved and redeploy queued."
           : "Variables saved.",
       );
-      void queryClient.invalidateQueries({ queryKey });
+      queryClient.setQueryData(queryKey, { variables: result.variables });
+      setRows(variablesToDrafts(result.variables));
     },
     onError: (err) => {
       if (err instanceof Error && err.message === "Validation failed") {
@@ -108,7 +110,19 @@ export function EnvironmentVariablesPanel({
 
   const updateRow = (index: number, patch: Partial<EnvVariableDraft>) => {
     setRows((current) =>
-      current.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)),
+      current.map((row, rowIndex) => {
+        if (rowIndex !== index) {
+          return row;
+        }
+        const next = { ...row, ...patch };
+        if (patch.value !== undefined && patch.value.trim()) {
+          next.hasStoredSecret = false;
+        }
+        if (patch.isSecret === false) {
+          next.hasStoredSecret = false;
+        }
+        return next;
+      }),
     );
   };
 
@@ -119,12 +133,6 @@ export function EnvironmentVariablesPanel({
   const removeRow = (index: number) => {
     setRows((current) => (current.length === 1 ? [emptyRow()] : current.filter((_, i) => i !== index)));
   };
-
-  const existingSecrets = new Map(
-    (data?.variables ?? [])
-      .filter((variable) => variable.isSecret && variable.hasValue)
-      .map((variable) => [variable.key, true]),
-  );
 
   return (
     <div className="mt-4 space-y-4 rounded-md border border-dashed p-4">
@@ -176,8 +184,8 @@ export function EnvironmentVariablesPanel({
                     id={`env-value-${environmentId}-${index}`}
                     type={row.isSecret ? "password" : "text"}
                     placeholder={
-                      row.isSecret && existingSecrets.get(row.key.trim())
-                        ? "Leave blank to keep current secret"
+                      row.isSecret && row.hasStoredSecret
+                        ? "Leave blank to keep saved secret"
                         : row.isSecret
                           ? "Secret value"
                           : "production"
@@ -185,6 +193,11 @@ export function EnvironmentVariablesPanel({
                     value={row.value}
                     onChange={(e) => updateRow(index, { value: e.target.value })}
                   />
+                  {row.isSecret && row.hasStoredSecret && !row.value.trim() && (
+                    <p className="text-xs text-muted-foreground">
+                      Secret saved on server (hidden). Type a new value to replace it.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-end gap-2 pb-2">

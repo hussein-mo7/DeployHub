@@ -7,6 +7,8 @@ import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
 import { CreateEnvironmentForm } from "@/components/projects/CreateEnvironmentForm";
 import { CreateServiceForm } from "@/components/projects/CreateServiceForm";
 import { DeploymentMethodBadge } from "@/components/projects/DeploymentMethodBadge";
+import { EnvironmentDeploymentsPanel } from "@/components/projects/EnvironmentDeploymentsPanel";
+import { ServicePortEditor } from "@/components/projects/ServicePortEditor";
 import { EnvironmentVariablesPanel } from "@/components/projects/EnvironmentVariablesPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +33,7 @@ export function ProjectDetailPage() {
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [showEnvironmentForm, setShowEnvironmentForm] = useState(false);
   const [expandedEnvVarsId, setExpandedEnvVarsId] = useState<string | null>(null);
+  const [expandedDeploymentsId, setExpandedDeploymentsId] = useState<string | null>(null);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [environmentError, setEnvironmentError] = useState<string | null>(null);
 
@@ -377,10 +380,21 @@ export function ProjectDetailPage() {
                       )}
                       <p className="font-mono text-xs text-muted-foreground">
                         {service.deploymentMethod === "DOCKERFILE" &&
-                          `${service.dockerfilePath} · context ${service.buildContext}`}
+                          `${service.dockerfilePath} · context ${service.buildContext}${
+                            service.port != null ? ` · port ${service.port}` : ""
+                          }`}
                         {service.deploymentMethod === "COMPOSE" && service.composeFilePath}
                         {service.deploymentMethod === "IMAGE" && service.imageName}
                       </p>
+                      {(service.deploymentMethod === "DOCKERFILE" ||
+                        service.deploymentMethod === "IMAGE") && (
+                        <ServicePortEditor
+                          projectId={id}
+                          serviceId={service.id}
+                          serviceName={service.name}
+                          port={service.port}
+                        />
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -463,6 +477,20 @@ export function ProjectDetailPage() {
                             ? "Hide environment variables"
                             : "Manage environment variables"}
                         </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="ml-3 h-auto p-0 text-xs text-primary hover:bg-transparent"
+                          onClick={() =>
+                            setExpandedDeploymentsId((current) =>
+                              current === environment.id ? null : environment.id,
+                            )
+                          }
+                        >
+                          {expandedDeploymentsId === environment.id
+                            ? "Hide deployments"
+                            : "Deployments & logs"}
+                        </Button>
                       </div>
                       <Button
                         variant="ghost"
@@ -481,6 +509,13 @@ export function ProjectDetailPage() {
                         projectId={id}
                         environmentId={environment.id}
                         environmentName={environment.name}
+                      />
+                    )}
+                    {expandedDeploymentsId === environment.id && (
+                      <EnvironmentDeploymentsPanel
+                        projectId={id}
+                        environmentId={environment.id}
+                        serverStatus={environment.serverStatus as ServerStatus}
                       />
                     )}
                   </div>

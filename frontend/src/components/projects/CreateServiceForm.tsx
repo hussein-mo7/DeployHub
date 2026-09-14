@@ -18,6 +18,7 @@ interface CreateServiceFormProps {
     composeFilePath: string;
     imageName?: string;
     buildContext: string;
+    port?: number;
   }) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
@@ -38,6 +39,7 @@ export function CreateServiceForm({
     composeFilePath: "docker-compose.yml",
     imageName: "",
     buildContext: ".",
+    port: "",
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -55,6 +57,7 @@ export function CreateServiceForm({
       ...(form.deploymentMethod === "IMAGE" && form.imageName.trim()
         ? { imageName: form.imageName.trim() }
         : {}),
+      ...(form.port.trim() ? { port: Number(form.port) } : {}),
     };
 
     const result = createServiceSchema.safeParse(payload);
@@ -149,6 +152,24 @@ export function CreateServiceForm({
                   <p className="text-xs text-destructive">{fieldErrors.buildContext}</p>
                 )}
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-port">Host port (optional)</Label>
+                <Input
+                  id="service-port"
+                  type="number"
+                  min={1}
+                  max={65535}
+                  placeholder="3000"
+                  value={form.port}
+                  onChange={(e) => setForm({ ...form, port: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Publishes the same port on your machine (e.g. 3000 for Next.js).
+                </p>
+                {fieldErrors.port && (
+                  <p className="text-xs text-destructive">{fieldErrors.port}</p>
+                )}
+              </div>
             </>
           )}
 
@@ -167,18 +188,35 @@ export function CreateServiceForm({
           )}
 
           {form.deploymentMethod === "IMAGE" && (
-            <div className="space-y-2">
-              <Label htmlFor="image-name">Image name</Label>
-              <Input
-                id="image-name"
-                placeholder="ghcr.io/user/app:latest"
-                value={form.imageName}
-                onChange={(e) => setForm({ ...form, imageName: e.target.value })}
-              />
-              {fieldErrors.imageName && (
-                <p className="text-xs text-destructive">{fieldErrors.imageName}</p>
-              )}
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="image-name">Image name</Label>
+                <Input
+                  id="image-name"
+                  placeholder="ghcr.io/user/app:latest"
+                  value={form.imageName}
+                  onChange={(e) => setForm({ ...form, imageName: e.target.value })}
+                />
+                {fieldErrors.imageName && (
+                  <p className="text-xs text-destructive">{fieldErrors.imageName}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="image-port">Host port (optional)</Label>
+                <Input
+                  id="image-port"
+                  type="number"
+                  min={1}
+                  max={65535}
+                  placeholder="8080"
+                  value={form.port}
+                  onChange={(e) => setForm({ ...form, port: e.target.value })}
+                />
+                {fieldErrors.port && (
+                  <p className="text-xs text-destructive">{fieldErrors.port}</p>
+                )}
+              </div>
+            </>
           )}
 
           <div className="flex gap-2">

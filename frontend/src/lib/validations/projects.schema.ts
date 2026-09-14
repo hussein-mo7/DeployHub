@@ -28,6 +28,7 @@ export const createServiceSchema = z
     composeFilePath: z.string().trim().min(1).max(255).default("docker-compose.yml"),
     imageName: z.string().trim().min(1).max(255).optional(),
     buildContext: z.string().trim().min(1).max(255).default("."),
+    port: z.coerce.number().int().min(1).max(65535).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.deploymentMethod === "IMAGE" && !data.imageName) {

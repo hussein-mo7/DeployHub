@@ -76,6 +76,18 @@ export async function deleteService(
   return data;
 }
 
+export async function updateService(
+  projectId: string,
+  serviceId: string,
+  input: { port?: number | null },
+): Promise<CreateServiceResponse> {
+  const { data } = await api.patch<CreateServiceResponse>(
+    `/projects/${projectId}/services/${serviceId}`,
+    input,
+  );
+  return data;
+}
+
 export async function listEnvironments(projectId: string): Promise<ListEnvironmentsResponse> {
   const { data } = await api.get<ListEnvironmentsResponse>(
     `/projects/${projectId}/environments`,
