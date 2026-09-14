@@ -6,10 +6,6 @@ console.log(`[INFO] DeployHub Agent starting (${env.NODE_ENV})`);
 
 const socket = connectAgentSocket();
 
-socket.on("connect", () => {
-  socket.emit("HEARTBEAT", { timestamp: new Date().toISOString() });
-});
-
 const shutdown = (signal: string) => {
   console.log(`[INFO] ${signal} received, shutting down agent...`);
   disconnectAgentSocket();

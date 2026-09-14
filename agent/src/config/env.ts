@@ -5,6 +5,7 @@ const envSchema = z.object({
   CONTROL_PLANE_URL: z.string().url(),
   AGENT_TOKEN: z.string().min(1),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  DEPLOYHUB_WORKSPACE: z.string().trim().min(1).default(".deployhub-workspace"),
 });
 
 export type Env = z.infer<typeof envSchema>;
