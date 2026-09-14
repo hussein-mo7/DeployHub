@@ -19,6 +19,10 @@ import {
   updateServiceController,
 } from "./projects.controller.js";
 import {
+  listEnvironmentVariablesController,
+  saveEnvironmentVariablesController,
+} from "./env-variables.controller.js";
+import {
   createEnvironmentSchema,
   createProjectSchema,
   createServiceSchema,
@@ -29,6 +33,7 @@ import {
   updateProjectSchema,
   updateServiceSchema,
 } from "./projects.schema.js";
+import { saveEnvironmentVariablesSchema } from "./env-variables.schema.js";
 
 export const projectsRoutes = Router();
 
@@ -107,4 +112,16 @@ projectsRoutes.delete(
   "/:projectId/environments/:environmentId",
   validateParams(environmentIdParamsSchema),
   deleteEnvironmentController,
+);
+
+projectsRoutes.get(
+  "/:projectId/environments/:environmentId/variables",
+  validateParams(environmentIdParamsSchema),
+  listEnvironmentVariablesController,
+);
+projectsRoutes.put(
+  "/:projectId/environments/:environmentId/variables",
+  validateParams(environmentIdParamsSchema),
+  validateBody(saveEnvironmentVariablesSchema),
+  saveEnvironmentVariablesController,
 );

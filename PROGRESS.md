@@ -1,6 +1,6 @@
 # DeployHub — Progress
 
-**Updated:** 2026-09-13 · **Next:** Phase 6 backend (env variables)
+**Updated:** 2026-09-13 · **Next:** Phase 6 Postman testing
 
 ---
 
@@ -92,10 +92,15 @@
 
 ---
 
-## Phase 6 — Env Variables
+## Phase 6 — Env Variables ← current
 
-- [ ] Encrypted secrets + Save / Save & Redeploy
-- [ ] Env vars UI
+- [x] Encrypted secrets + Save / Save & Redeploy API
+- [ ] Postman tests pass
+- [x] Env vars UI (functional only)
+
+**Run once:** `npm run db:push` (creates EnvironmentVariable table)
+
+**Testing (Postman):** see `TESTING.md` → Phase 6
 
 ---
 

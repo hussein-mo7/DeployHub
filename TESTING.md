@@ -408,7 +408,85 @@ Save `environment.id` as `environmentId`.
 
 ---
 
-## Phase 6+ — Coming soon
+## Phase 6 — Environment Variables
+
+**Prerequisites:** Run **0 — Session → Login** first. Run `npm run db:push` after pull. You need `projectId`, `environmentId`, and `ENCRYPTION_KEY` set in `backend/.env`.
+
+### Test 6.1 List variables (empty)
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables` |
+| **Expected** | `200` — `{ "variables": [] }` |
+
+### Test 6.2 Save variables (plain + secret)
+
+| | |
+|---|---|
+| **Method** | `PUT` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables` |
+| **Body** | See below |
+| **Expected** | `200` — variables saved; secret value masked in response |
+
+```json
+{
+  "variables": [
+    {
+      "key": "NODE_ENV",
+      "value": "production",
+      "isSecret": false
+    },
+    {
+      "key": "MONGODB_URI",
+      "value": "mongodb+srv://user:pass@cluster.mongodb.net/db",
+      "isSecret": true
+    }
+  ],
+  "redeploy": false
+}
+```
+
+| **Check** | `MONGODB_URI` returns `value: null`, `maskedValue: "••••••••"`, `hasValue: true` |
+| **Check** | `NODE_ENV` returns plain `value: "production"` |
+
+### Test 6.3 List variables (after save)
+
+| | |
+|---|---|
+| **GET** | same URL as 6.1 |
+| **Expected** | `200` — 2 variables; secret still masked |
+
+### Test 6.4 Update secret without resending value
+
+Send the same body but omit `value` for `MONGODB_URI` (or use empty string). Secret should be preserved.
+
+```json
+{
+  "variables": [
+    { "key": "NODE_ENV", "value": "production", "isSecret": false },
+    { "key": "MONGODB_URI", "isSecret": true }
+  ],
+  "redeploy": false
+}
+```
+
+| **Expected** | `200` — `MONGODB_URI` still has `hasValue: true` |
+
+### Test 6.5 Save & redeploy
+
+| | |
+|---|---|
+| **Method** | `PUT` |
+| **URL** | same as 6.2 |
+| **Body** | `{ "variables": [...], "redeploy": true }` |
+| **Expected** | `200` — `redeployQueued: true` (deployment worker stub logs job) |
+
+**Phase 6 pass:** Save plain + secret vars → list masks secrets → save without redeploy → save with redeploy queues job.
+
+---
+
+## Phase 7+ — Coming soon
 
 Tests will be added here as each phase is built. See `PROGRESS.md` for implementation status.
 
@@ -424,6 +502,8 @@ In your Postman workspace **Hussein Mohammed's Workspace**:
 | Environment | **DeployHub Local** |
 
 Account credentials live in **DeployHub Local** environment variables. After register, paste the token into `verificationToken`. Run **0 — Session → Login** before Phase 3+.
+
+**Phase folders in collection:** 0 — Session, Phase 1–6 (including **Phase 6 — Environment Variables**: requests `6.1`–`6.5`). Phase 5 **5.5 Create Environment** saves `environmentId` for Phase 6.
 
 ---
 
@@ -443,3 +523,7 @@ Account credentials live in **DeployHub Local** environment variables. After reg
 | Server table missing | Run `npm run db:push` |
 | Agent stays OFFLINE | Check `AGENT_TOKEN` matches register response; backend must be running |
 | Agent auth failed | Re-register with a new server token — registration tokens are one-time |
+| Project/Environment tables missing | Run `npm run db:push` |
+| Phase 6 variables 404 | Run `npm run db:push` (EnvironmentVariable table) |
+| Phase 6 missing `environmentId` | Run Phase 5 **5.5 Create Environment** (saves `environmentId`) |
+| New secret requires value | First save of a secret key must include `value`; omit only when updating existing secret |
