@@ -7,6 +7,7 @@ import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
 import { CreateEnvironmentForm } from "@/components/projects/CreateEnvironmentForm";
 import { CreateServiceForm } from "@/components/projects/CreateServiceForm";
 import { DeploymentMethodBadge } from "@/components/projects/DeploymentMethodBadge";
+import { EnvironmentVariablesPanel } from "@/components/projects/EnvironmentVariablesPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ export function ProjectDetailPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [showEnvironmentForm, setShowEnvironmentForm] = useState(false);
+  const [expandedEnvVarsId, setExpandedEnvVarsId] = useState<string | null>(null);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [environmentError, setEnvironmentError] = useState<string | null>(null);
 
@@ -433,31 +435,54 @@ export function ProjectDetailPage() {
                 {project.environments.map((environment) => (
                   <div
                     key={environment.id}
-                    className="flex flex-wrap items-start justify-between gap-3 rounded-md border p-4"
+                    className="rounded-md border p-4"
                   >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-medium">{environment.name}</h4>
-                        <ServerStatusBadge status={environment.serverStatus as ServerStatus} />
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-medium">{environment.name}</h4>
+                          <ServerStatusBadge status={environment.serverStatus as ServerStatus} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {environment.serverName} · branch {environment.branch}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Auto deploy: {environment.autoDeployEnabled ? "enabled" : "disabled"}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-auto p-0 text-xs text-primary hover:bg-transparent"
+                          onClick={() =>
+                            setExpandedEnvVarsId((current) =>
+                              current === environment.id ? null : environment.id,
+                            )
+                          }
+                        >
+                          {expandedEnvVarsId === environment.id
+                            ? "Hide environment variables"
+                            : "Manage environment variables"}
+                        </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {environment.serverName} · branch {environment.branch}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Auto deploy: {environment.autoDeployEnabled ? "enabled" : "disabled"}
-                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        disabled={deleteEnvironmentMutation.isPending}
+                        onClick={() =>
+                          handleDeleteEnvironment(environment.id, environment.name)
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      disabled={deleteEnvironmentMutation.isPending}
-                      onClick={() =>
-                        handleDeleteEnvironment(environment.id, environment.name)
-                      }
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {expandedEnvVarsId === environment.id && (
+                      <EnvironmentVariablesPanel
+                        projectId={id}
+                        environmentId={environment.id}
+                        environmentName={environment.name}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

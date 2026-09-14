@@ -90,3 +90,30 @@ export interface CreateEnvironmentResponse {
 export interface DeleteEnvironmentResponse {
   message: string;
 }
+
+export interface EnvironmentVariableSummary {
+  id: string;
+  environmentId: string;
+  key: string;
+  value: string | null;
+  maskedValue: string | null;
+  isSecret: boolean;
+  hasValue: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListEnvironmentVariablesResponse {
+  variables: EnvironmentVariableSummary[];
+}
+
+export interface SaveEnvironmentVariablesResponse {
+  variables: EnvironmentVariableSummary[];
+  redeployQueued: boolean;
+}
+
+export interface EnvVariableDraft {
+  key: string;
+  value: string;
+  isSecret: boolean;
+}

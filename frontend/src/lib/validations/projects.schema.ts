@@ -50,3 +50,21 @@ export type CreateProjectForm = z.infer<typeof createProjectSchema>;
 export type UpdateProjectForm = z.infer<typeof updateProjectSchema>;
 export type CreateServiceForm = z.infer<typeof createServiceSchema>;
 export type CreateEnvironmentForm = z.infer<typeof createEnvironmentSchema>;
+
+export const envVariableDraftSchema = z.object({
+  key: z
+    .string()
+    .trim()
+    .min(1, "Key is required")
+    .max(255)
+    .regex(/^[A-Za-z_][A-Za-z0-9_]*$/, "Key must look like an environment variable name"),
+  value: z.string().max(10000),
+  isSecret: z.boolean().default(false),
+});
+
+export const saveEnvironmentVariablesSchema = z.object({
+  variables: z.array(envVariableDraftSchema).max(100),
+  redeploy: z.boolean().default(false),
+});
+
+export type SaveEnvironmentVariablesForm = z.infer<typeof saveEnvironmentVariablesSchema>;

@@ -8,14 +8,17 @@ import type {
   DeleteServiceResponse,
   GetProjectResponse,
   ListEnvironmentsResponse,
+  ListEnvironmentVariablesResponse,
   ListProjectsResponse,
   ListServicesResponse,
+  SaveEnvironmentVariablesResponse,
   UpdateProjectResponse,
 } from "@/types/projects.types";
 import type {
   CreateEnvironmentForm,
   CreateProjectForm,
   CreateServiceForm,
+  SaveEnvironmentVariablesForm,
   UpdateProjectForm,
 } from "@/lib/validations/projects.schema";
 
@@ -97,6 +100,28 @@ export async function deleteEnvironment(
 ): Promise<DeleteEnvironmentResponse> {
   const { data } = await api.delete<DeleteEnvironmentResponse>(
     `/projects/${projectId}/environments/${environmentId}`,
+  );
+  return data;
+}
+
+export async function listEnvironmentVariables(
+  projectId: string,
+  environmentId: string,
+): Promise<ListEnvironmentVariablesResponse> {
+  const { data } = await api.get<ListEnvironmentVariablesResponse>(
+    `/projects/${projectId}/environments/${environmentId}/variables`,
+  );
+  return data;
+}
+
+export async function saveEnvironmentVariables(
+  projectId: string,
+  environmentId: string,
+  input: SaveEnvironmentVariablesForm,
+): Promise<SaveEnvironmentVariablesResponse> {
+  const { data } = await api.put<SaveEnvironmentVariablesResponse>(
+    `/projects/${projectId}/environments/${environmentId}/variables`,
+    input,
   );
   return data;
 }
