@@ -1,8 +1,13 @@
 # DeployHub — Progress
 
-**Updated:** 2026-09-13 · **Next:** Phase 6 Postman testing
+**Updated:** 2026-09-14 · **Next:** Phase 8 — Health checks (backend first)
 
 ---
+
+## Deferred until MVP phases done
+
+- UI polish (deployments, env vars, auth, GitHub settings, dashboard)
+- Optional backend refinements discovered during polish
 
 ## Rules
 
@@ -92,10 +97,10 @@
 
 ---
 
-## Phase 6 — Env Variables ← current
+## Phase 6 — Env Variables ✅
 
 - [x] Encrypted secrets + Save / Save & Redeploy API
-- [ ] Postman tests pass
+- [x] Postman tests pass
 - [x] Env vars UI (functional only)
 
 **Run once:** `npm run db:push` (creates EnvironmentVariable table)
@@ -104,17 +109,28 @@
 
 ---
 
-## Phase 7 — Deployments
+## Phase 7 — Deployments ✅ (functional)
 
-- [ ] Deployment worker + agent command protocol
-- [ ] Dockerfile, Compose, Image strategies
-- [ ] Live logs + deployment history UI
+- [x] Deployment model + queue worker + agent DEPLOY protocol
+- [x] Dockerfile, Compose, Image strategies (agent)
+- [x] Live logs (Socket.IO + worker Redis relay) + deployment UI
+- [x] Service host port publishing for local browser access
+- [ ] Formal sign-off: Postman 7.1–7.4 + one documented SUCCESS run in `TESTING.md` (optional checklist)
+
+**Testing (Postman):** see `TESTING.md` → Phase 7
 
 ---
 
-## Phase 8 — Health Checks
+## Phase 8 — Health Checks ← current
 
-- [ ] Post-deploy health verification
+- [x] Service health check config (`healthCheckPath`, `healthCheckEnabled` + existing `port`)
+- [x] Agent HTTP verify after DOCKERFILE/IMAGE container start; failure ⇒ `FAILED`
+- [ ] Postman tests + `TESTING.md` Phase 8 verified locally
+- [ ] Minimal UI (show health result in deployment logs — already in log stream)
+
+**Run once:** `npm run db:push` (adds health check columns on `Service`)
+
+**Testing (Postman):** see `TESTING.md` → Phase 8
 
 ---
 

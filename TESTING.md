@@ -486,7 +486,99 @@ Send the same body but omit `value` for `MONGODB_URI` (or use empty string). Sec
 
 ---
 
-## Phase 7+ — Coming soon
+## Phase 7 — Deployments (local agent)
+
+**Prerequisites:** Phase 5 project + environment + at least one service. Phase 6 env vars optional but recommended. GitHub connected. **Agent ONLINE** on target server. **Docker Desktop** running. **Git** installed.
+
+**Run locally (4 terminals):**
+
+```powershell
+docker compose up redis -d
+npm run dev:backend
+npm run worker
+npm run dev:agent
+```
+
+### Test 7.1 Trigger deployment
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/deployments` |
+| **Expected** | `201` — `deployment` with `status: "QUEUED"` |
+
+Save `deployment.id` as `deploymentId`.
+
+### Test 7.2 List deployments
+
+| | |
+|---|---|
+| **GET** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/deployments` |
+| **Expected** | `200` — newest deployment first |
+
+### Test 7.3 Get deployment + logs
+
+| | |
+|---|---|
+| **GET** | `{{baseUrl}}/api/deployments/{{deploymentId}}` |
+| **Expected** | `200` — `logs` array grows; final `status` is `SUCCESS` or `FAILED` |
+
+**Pass:** Agent clones repo, runs Docker strategy, deployment ends `SUCCESS`.
+
+### Test 7.4 Cancel stuck deployment (optional)
+
+If a deployment stays `RUNNING`/`QUEUED` and blocks new deploys:
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/deployments/{{deploymentId}}/cancel` |
+| **Expected** | `200` — `status: "CANCELLED"` |
+
+Then retry **7.1**.
+
+### Browser access after deploy (DOCKERFILE / IMAGE)
+
+The app listens **inside** the container (e.g. Next.js on port **3000**). To reach it on your machine, set the service **`port`** (PATCH service with `{ "port": 3000 }`) or add env **`PORT=3000`**, then redeploy. The agent publishes `-p 3000:3000` on the host.
+
+**Local notes:** Workspace defaults to `.deployhub-workspace/` in repo root. Use a public test repo or a repo your GitHub App can clone.
+
+---
+
+## Phase 8 — Health checks
+
+After a DOCKERFILE/IMAGE deploy, the agent GETs `http://127.0.0.1:{port}{path}` on the **server** (host port must be set). Up to ~60s of retries. Failure marks deployment **FAILED**.
+
+**Defaults:** `healthCheckPath: "/"`, `healthCheckEnabled: true`. No host **port** ⇒ check is skipped (logged, deploy can still succeed).
+
+### Test 8.1 Configure service health check
+
+| | |
+|---|---|
+| **Method** | `PATCH` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/services/{{serviceId}}` |
+| **Body** | `{ "port": 3000, "healthCheckPath": "/", "healthCheckEnabled": true }` |
+
+**Expected:** `200` — service includes `healthCheckPath` and `healthCheckEnabled`.
+
+### Test 8.2 Deploy with passing health check
+
+1. Ensure **8.1** (port **3000**, path **`/`**).
+2. Run **Phase 7 → 7.1** deploy.
+3. **7.3** logs should include `Health check: GET http://127.0.0.1:3000/` then `Health check passed`.
+4. Final status **`SUCCESS`**.
+
+### Test 8.3 Deploy with failing health check (optional)
+
+| | |
+|---|---|
+| **Body (8.1)** | `{ "healthCheckPath": "/this-route-does-not-exist", "healthCheckEnabled": true, "port": 3000 }` |
+
+Redeploy (**7.1**). **Expected:** **`FAILED`**, log contains `Health check failed`.
+
+---
+
+## Phase 9+ — Coming soon
 
 Tests will be added here as each phase is built. See `PROGRESS.md` for implementation status.
 
@@ -503,7 +595,7 @@ In your Postman workspace **Hussein Mohammed's Workspace**:
 
 Account credentials live in **DeployHub Local** environment variables. After register, paste the token into `verificationToken`. Run **0 — Session → Login** before Phase 3+.
 
-**Phase folders in collection:** 0 — Session, Phase 1–6 (including **Phase 6 — Environment Variables**: requests `6.1`–`6.5`). Phase 5 **5.5 Create Environment** saves `environmentId` for Phase 6.
+**Phase folders in collection:** Phase 1–8 (Phase 5 **5.5** saves `environmentId`; Phase 7 **7.1** saves `deploymentId`; Phase 8 **8.1–8.4** health checks).
 
 ---
 
@@ -526,4 +618,6 @@ Account credentials live in **DeployHub Local** environment variables. After reg
 | Project/Environment tables missing | Run `npm run db:push` |
 | Phase 6 variables 404 | Run `npm run db:push` (EnvironmentVariable table) |
 | Phase 6 missing `environmentId` | Run Phase 5 **5.5 Create Environment** (saves `environmentId`) |
+| Deployment stays QUEUED | Start `npm run worker` and ensure agent is ONLINE |
+| Deployment FAILED clone/build | Git + Docker installed; GitHub App access to repo; check **7.3** logs |
 | New secret requires value | First save of a secret key must include `value`; omit only when updating existing secret |

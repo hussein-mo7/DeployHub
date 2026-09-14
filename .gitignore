@@ -42,6 +42,7 @@ backend/prisma/*.db-journal
 
 # Agent workspace (local dev)
 .agent-workspace/
+**/.deployhub-workspace/
 
 # Misc
 *.pem
