@@ -46,6 +46,9 @@ function toServiceSummary(service: Service): ServiceSummary {
     composeFilePath: service.composeFilePath,
     imageName: service.imageName,
     buildContext: service.buildContext,
+    port: service.port,
+    healthCheckPath: service.healthCheckPath,
+    healthCheckEnabled: service.healthCheckEnabled,
     createdAt: service.createdAt.toISOString(),
     updatedAt: service.updatedAt.toISOString(),
   };
@@ -215,6 +218,9 @@ export async function createService(
         composeFilePath: input.composeFilePath,
         imageName: input.imageName,
         buildContext: input.buildContext,
+        port: input.port,
+        healthCheckPath: input.healthCheckPath,
+        healthCheckEnabled: input.healthCheckEnabled,
       },
     });
 
@@ -289,6 +295,11 @@ export async function updateService(
         ...(input.composeFilePath !== undefined ? { composeFilePath: input.composeFilePath } : {}),
         ...(input.imageName !== undefined ? { imageName: input.imageName } : {}),
         ...(input.buildContext !== undefined ? { buildContext: input.buildContext } : {}),
+        ...(input.port !== undefined ? { port: input.port } : {}),
+        ...(input.healthCheckPath !== undefined ? { healthCheckPath: input.healthCheckPath } : {}),
+        ...(input.healthCheckEnabled !== undefined
+          ? { healthCheckEnabled: input.healthCheckEnabled }
+          : {}),
       },
     });
 

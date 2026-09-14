@@ -1,9 +1,9 @@
 import type { EnvironmentVariable } from "@prisma/client";
-import { deploymentQueue } from "../../config/queues.js";
 import { prisma } from "../../config/database.js";
 import { ERROR_CODES } from "../../constants/errors.js";
 import { AppError } from "../../middleware/error.middleware.js";
 import { decryptSecret, encryptSecret, SECRET_MASK } from "../../utils/encryption.js";
+import { createDeploymentForEnvironment } from "../deployments/deployments.service.js";
 import type { SaveEnvironmentVariablesInput } from "./env-variables.schema.js";
 import { getEnvironment } from "./projects.service.js";
 import type { EnvironmentVariableSummary } from "./env-variables.types.js";
@@ -107,7 +107,10 @@ export async function saveEnvironmentVariables(
           encryptedValue = encryptSecret(item.value!);
         } else if (current?.encryptedValue) {
           encryptedValue = current.encryptedValue;
+        } else if (current?.value) {
+          encryptedValue = encryptSecret(current.value);
         }
+        value = null;
       } else {
         value = hasIncomingValue ? item.value! : (current?.value ?? null);
       }
@@ -141,15 +144,11 @@ export async function saveEnvironmentVariables(
 
   let redeployQueued = false;
   if (input.redeploy) {
-    await deploymentQueue.add(
-      "deploy-environment",
-      {
-        projectId,
-        environmentId,
-        userId,
-        trigger: "save-and-redeploy",
-      },
-      { jobId: `deploy-${environmentId}-${Date.now()}` },
+    await createDeploymentForEnvironment(
+      userId,
+      projectId,
+      environmentId,
+      "SAVE_AND_REDEPLOY",
     );
     redeployQueued = true;
   }

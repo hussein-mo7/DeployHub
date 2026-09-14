@@ -24,6 +24,9 @@ export interface ServiceSummary {
   composeFilePath: string;
   imageName: string | null;
   buildContext: string;
+  port: number | null;
+  healthCheckPath: string;
+  healthCheckEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -38,6 +38,13 @@ export const environmentIdParamsSchema = projectIdParamsSchema.extend({
   environmentId: z.string().min(1),
 });
 
+const healthCheckPathSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(255)
+  .refine((value) => value.startsWith("/"), "Health check path must start with /");
+
 export const createServiceSchema = z
   .object({
     name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
@@ -47,6 +54,9 @@ export const createServiceSchema = z
     composeFilePath: z.string().trim().min(1).max(255).default("docker-compose.yml"),
     imageName: z.string().trim().min(1).max(255).optional(),
     buildContext: z.string().trim().min(1).max(255).default("."),
+    port: z.coerce.number().int().min(1).max(65535).optional(),
+    healthCheckPath: healthCheckPathSchema.default("/"),
+    healthCheckEnabled: z.boolean().default(true),
   })
   .superRefine((data, ctx) => {
     if (data.deploymentMethod === "IMAGE" && !data.imageName) {
@@ -67,6 +77,9 @@ export const updateServiceSchema = z
     composeFilePath: z.string().trim().min(1).max(255).optional(),
     imageName: z.string().trim().min(1).max(255).nullable().optional(),
     buildContext: z.string().trim().min(1).max(255).optional(),
+    port: z.coerce.number().int().min(1).max(65535).nullable().optional(),
+    healthCheckPath: healthCheckPathSchema.optional(),
+    healthCheckEnabled: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",
