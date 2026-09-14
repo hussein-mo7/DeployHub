@@ -22,6 +22,7 @@ model User {
   githubInstallation      GitHubInstallation?
   servers                 Server[]
   projects                Project[]
+  deployments             Deployment[]
 }
 
 enum ServerStatus {
@@ -111,6 +112,7 @@ model Project {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   services     Service[]
   environments Environment[]
+  deployments  Deployment[]
 
   @@unique([userId, name])
   @@index([userId])
@@ -126,6 +128,10 @@ model Service {
   composeFilePath  String           @default("docker-compose.yml")
   imageName        String?
   buildContext     String           @default(".")
+  /// TCP port inside the container to publish on the host (same port number), e.g. 3000 for Next.js
+  port             Int?
+  healthCheckPath  String           @default("/")
+  healthCheckEnabled Boolean        @default(true)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -148,6 +154,7 @@ model Environment {
   project    Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
   server     Server                  @relation(fields: [serverId], references: [id], onDelete: Restrict)
   variables  EnvironmentVariable[]
+  deployments Deployment[]
 
   @@unique([projectId, name])
   @@index([projectId])
@@ -168,4 +175,54 @@ model EnvironmentVariable {
 
   @@unique([environmentId, key])
   @@index([environmentId])
+}
+
+enum DeploymentStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum DeploymentTrigger {
+  MANUAL
+  SAVE_AND_REDEPLOY
+  WEBHOOK
+}
+
+model Deployment {
+  id            String            @id @default(cuid())
+  userId        String
+  projectId     String
+  environmentId String
+  status        DeploymentStatus  @default(PENDING)
+  trigger       DeploymentTrigger @default(MANUAL)
+  errorMessage  String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  environment Environment     @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  logs        DeploymentLog[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([environmentId])
+  @@index([status])
+}
+
+model DeploymentLog {
+  id           String   @id @default(cuid())
+  deploymentId String
+  message      String
+  createdAt    DateTime @default(now())
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@index([deploymentId])
 }

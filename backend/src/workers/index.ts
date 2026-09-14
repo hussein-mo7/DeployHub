@@ -1,28 +1,10 @@
-import { Worker } from "bullmq";
-import { redis } from "../config/redis.js";
-import { logger } from "../utils/logger.js";
+export { deploymentWorker } from "./deployment.worker.js";
+export { webhookWorker } from "./webhook.worker.js";
+export { cleanupWorker } from "./cleanup.worker.js";
 
-const connection = redis.duplicate();
-
-function createStubWorker(name: string, queueName: string): Worker {
-  const worker = new Worker(
-    queueName,
-    async (job) => {
-      logger.info(`[${name}] Job received (stub): ${job.id}`);
-    },
-    { connection },
-  );
-
-  worker.on("failed", (job, error) => {
-    logger.error(`[${name}] Job ${job?.id} failed`, error);
-  });
-
-  return worker;
-}
-
-export const deploymentWorker = createStubWorker("deployment", "deployments");
-export const webhookWorker = createStubWorker("webhook", "webhooks");
-export const cleanupWorker = createStubWorker("cleanup", "cleanup");
+import { deploymentWorker } from "./deployment.worker.js";
+import { webhookWorker } from "./webhook.worker.js";
+import { cleanupWorker } from "./cleanup.worker.js";
 
 export const workers = [deploymentWorker, webhookWorker, cleanupWorker];
 
