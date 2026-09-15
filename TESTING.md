@@ -665,7 +665,37 @@ Push a commit to the linked repo/branch → webhook hits your public URL → sam
 
 ---
 
-## Phase 11+ — Coming soon
+## Phase 11 — MVP acceptance (SRS §8)
+
+MVP is **done** when all five scenarios pass. Mix **browser UI** and **Postman** as noted — you already verified several via API.
+
+**Prerequisites:** Redis, `npm run dev:backend`, `npm run worker`, `npm run dev:agent`, agent **ONLINE**, GitHub connected, one project with Dockerfile service (port + health `/`).
+
+| # | Scenario | How to verify | Pass when |
+|---|----------|---------------|-----------|
+| **1** | **Dockerfile deploy** | Browser: register/login → Settings → Connect GitHub → Servers → agent → Projects → env vars → project environment **Deploy now** → Deployments for logs | Deployment **SUCCESS**, health in logs, app reachable on published port |
+| **2** | **Docker Compose** | Second project (or replace services): deployment method **COMPOSE**, repo with `docker-compose.yml` (e.g. app + db). Deploy | All compose services start; deploy **SUCCESS** |
+| **3** | **Environment update** | Phase 6 Postman or project UI env panel: **Save** only → app keeps running. Then **Save & Redeploy** → new deployment, containers updated | Two behaviors match SRS (no redeploy on Save alone) |
+| **4** | **Rollback** | After two successful deploys with different commits: Phase **9.1** or UI **Rollback to this** on older SUCCESS row | New deployment **SUCCESS**, `trigger: ROLLBACK`, older commit running |
+| **5** | **Auto deploy** | Phase **10.1** + **10.2** (or real push + webhook URL) | New deployment `trigger: WEBHOOK`, **SUCCESS** |
+
+**Phase 11 UI polish (browser)**
+
+1. **Dashboard** — server/project counts, deployment totals, latest deployment row.
+2. **Deployments** — global recent list + expandable logs.
+3. **Settings** — account + GitHub connect/disconnect + repo sample list.
+4. **Auth** — login/register/verify in browser (same account as Postman).
+
+Check each box in `PROGRESS.md` Phase 11 when verified.
+
+**Phase 11 pass:** All five scenario rows satisfied + UI pages usable without placeholders (Settings + Deployments + Dashboard).
+
+---
+
+## Phase 11+ — Post-MVP
+
+Product polish, UX backlog, and 2.0 features: **[ROADMAP.md](./ROADMAP.md)**.  
+UI guidelines: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 
 ---
 

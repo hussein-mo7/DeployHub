@@ -11,6 +11,7 @@ export const ROUTES = {
   PROJECT_DETAIL: "/projects/:id",
   DEPLOYMENTS: "/deployments",
   SETTINGS: "/settings",
+  SETTINGS_GITHUB: "/settings/github",
 } as const;
 
 export function serverDetailPath(id: string): string {

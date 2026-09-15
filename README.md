@@ -53,11 +53,13 @@ DeployHub/
 ├── frontend/           # React dashboard
 ├── backend/            # Express API + BullMQ workers
 ├── agent/              # VPS deployment agent
-├── docker-compose.yml  # Local PostgreSQL + Redis
-├── SRS.md              # Software requirements (MVP)
+├── docs/               # Design guidelines + doc index
+├── docker-compose.yml  # Local Redis (PostgreSQL via Neon)
+├── SRS.md              # MVP requirements (frozen)
+├── ROADMAP.md          # Post-MVP backlog (1.1 UX + 2.0)
 ├── ARCHITECTURE.md     # System architecture
-├── PROGRESS.md         # Implementation progress tracker
-└── TESTING.md          # Postman testing guide (phase by phase)
+├── PROGRESS.md         # MVP phase history
+└── TESTING.md          # Postman API testing guide
 ```
 
 ---
@@ -133,7 +135,7 @@ npm run build
 | Direct health | http://localhost:3001/api/health |
 | Redis running | `docker ps` → `deployhub-redis` |
 
-When all checks pass, Phase 1 is verified — ready for Phase 2 (Auth).
+When health checks pass, the stack is ready for auth and deployments. See [`PROGRESS.md`](./PROGRESS.md) for MVP phase history and [`ROADMAP.md`](./ROADMAP.md) for what comes next.
 
 ### URLs (local)
 
@@ -143,7 +145,17 @@ When all checks pass, Phase 1 is verified — ready for Phase 2 (Auth).
 | Backend API | http://localhost:3001 |
 | Health check | http://localhost:3001/api/health |
 
-See [`PROGRESS.md`](./PROGRESS.md) for current implementation status.
+See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
+
+---
+
+## Project status
+
+| Milestone | State |
+|-----------|--------|
+| **MVP** | Shipped — deploy loop, agent, webhooks, rollback, secrets (API) |
+| **Release 1.1** | Planned — professional UI, env secret reveal, design system ([`ROADMAP.md`](./ROADMAP.md)) |
+| **2.0** | Backlog — teams, notifications, advanced deploy ([`ROADMAP.md`](./ROADMAP.md) §2 P2) |
 
 ---
 
@@ -151,10 +163,13 @@ See [`PROGRESS.md`](./PROGRESS.md) for current implementation status.
 
 | Document | Description |
 |----------|-------------|
-| [SRS.md](./SRS.md) | Functional and non-functional requirements |
+| [SRS.md](./SRS.md) | MVP functional requirements (frozen) |
+| [ROADMAP.md](./ROADMAP.md) | Post-MVP product & UX backlog |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, folder structure, tech decisions |
-| [PROGRESS.md](./PROGRESS.md) | Phased implementation tracker |
+| [PROGRESS.md](./PROGRESS.md) | MVP phased implementation tracker |
+| [docs/DESIGN.md](./docs/DESIGN.md) | UI guidelines for Release 1.1 |
 | [TESTING.md](./TESTING.md) | Postman API testing guide |
+| [docs/README.md](./docs/README.md) | Documentation index |
 
 ---
 
@@ -162,7 +177,7 @@ See [`PROGRESS.md`](./PROGRESS.md) for current implementation status.
 
 The MVP delivers a complete deployment workflow: account creation, GitHub integration, server management, agent installation, project configuration, manual and automatic deployments, live logs, health checks, and rollback.
 
-Full acceptance criteria are defined in **SRS.md Section 8**.
+Acceptance criteria: **SRS.md §8**. UI polish and UX improvements are **Release 1.1** — see **ROADMAP.md**.
 
 ---
 
@@ -171,7 +186,7 @@ Full acceptance criteria are defined in **SRS.md Section 8**.
 - Clean architecture with strong separation of concerns
 - Backend-first implementation (API before UI)
 - Incremental phases — one module at a time
-- Modern, professional UI built with shadcn/ui
+- Modern UI foundation (shadcn/ui) — **professional visual design in Release 1.1**
 - No arbitrary shell execution on agents — structured commands only
 
 ---

@@ -7,7 +7,7 @@ import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
 import { VerifyEmailSentPage } from "@/pages/auth/VerifyEmailSentPage";
 import { DeploymentsPage } from "@/pages/deployments/DeploymentsPage";
-import { SettingsPage } from "@/pages/PlaceholderPages";
+import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { ProjectDetailPage } from "@/pages/projects/ProjectDetailPage";
 import { ProjectsPage } from "@/pages/projects/ProjectsPage";
 import { ServerDetailPage } from "@/pages/servers/ServerDetailPage";
@@ -35,6 +35,10 @@ export function AppRoutes() {
           <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectDetailPage />} />
           <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
           <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+          <Route
+            path={ROUTES.SETTINGS_GITHUB}
+            element={<Navigate to={`${ROUTES.SETTINGS}?github=connected`} replace />}
+          />
         </Route>
       </Route>
 

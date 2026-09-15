@@ -1,6 +1,6 @@
 # DeployHub — Requirements (SRS)
 
-**Version:** 1 · **Scope:** MVP
+**Version:** 1 · **Scope:** MVP (frozen) · **Next:** [`ROADMAP.md`](./ROADMAP.md) (Release 1.1 UX)
 
 Defines **what** DeployHub must do. For **how** it is built, see [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
@@ -229,3 +229,11 @@ Enable auto-deploy → GitHub push triggers deployment
 - **Container-first** — Docker is the deployment unit
 - **Secure by default** — secrets and agent comms protected
 - **Observable** — always know what, where, which version, and why it failed
+
+---
+
+## 12. Post-MVP (Release 1.1+)
+
+MVP acceptance is defined in **§8**. Further product work (UI/UX polish, secret reveal, design system, teams, notifications) is **out of scope for SRS v1** and tracked in **[`ROADMAP.md`](./ROADMAP.md)**.
+
+Visual and interaction guidelines for the frontend polish release: **[`docs/DESIGN.md`](./docs/DESIGN.md)**.
