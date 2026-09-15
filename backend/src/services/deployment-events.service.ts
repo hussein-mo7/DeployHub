@@ -98,14 +98,31 @@ export async function handleAgentDeploymentStatus(
     return;
   }
 
-  const data = payload as { status?: string; errorMessage?: string };
+  const data = payload as { status?: string; errorMessage?: string; gitCommitSha?: string };
   if (data.status !== "SUCCESS" && data.status !== "FAILED" && data.status !== "CANCELLED") {
     return;
   }
 
   try {
-    const { markDeploymentFinished } = await import("../modules/deployments/deployments.service.js");
-    await markDeploymentFinished(deploymentId, data.status, data.errorMessage);
+    const { markDeploymentFinished, resolveGitCommitShaFromDeploymentLogs } = await import(
+      "../modules/deployments/deployments.service.js"
+    );
+
+    let gitCommitSha =
+      data.status === "SUCCESS" && typeof data.gitCommitSha === "string"
+        ? data.gitCommitSha.trim()
+        : undefined;
+
+    if (data.status === "SUCCESS" && !gitCommitSha) {
+      gitCommitSha = (await resolveGitCommitShaFromDeploymentLogs(deploymentId)) ?? undefined;
+    }
+
+    await markDeploymentFinished(
+      deploymentId,
+      data.status,
+      data.errorMessage,
+      gitCommitSha,
+    );
   } catch (error) {
     logger.error(`Failed to persist deployment status for ${deploymentId}`, error);
     broadcastDeploymentStatus(deploymentId, data.status, data.errorMessage ?? null);

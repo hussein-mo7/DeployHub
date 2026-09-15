@@ -1,6 +1,6 @@
 # DeployHub — Progress
 
-**Updated:** 2026-09-14 · **Next:** Phase 8 — Health checks (backend first)
+**Updated:** 2026-09-15 · **Next:** Phase 10 — Auto deploy (GitHub webhook)
 
 ---
 
@@ -121,12 +121,12 @@
 
 ---
 
-## Phase 8 — Health Checks ← current
+## Phase 8 — Health Checks ✅
 
 - [x] Service health check config (`healthCheckPath`, `healthCheckEnabled` + existing `port`)
 - [x] Agent HTTP verify after DOCKERFILE/IMAGE container start; failure ⇒ `FAILED`
-- [ ] Postman tests + `TESTING.md` Phase 8 verified locally
-- [ ] Minimal UI (show health result in deployment logs — already in log stream)
+- [x] Postman tests + `TESTING.md` Phase 8 verified locally
+- [x] Health result visible in deployment logs (7.3 / 8.4)
 
 **Run once:** `npm run db:push` (adds health check columns on `Service`)
 
@@ -134,15 +134,30 @@
 
 ---
 
-## Phase 9 — Rollback
+## Phase 9 — Rollback ✅
 
-- [ ] Redeploy previous successful version
+- [x] Store `branch` + `gitCommitSha` on successful deployments
+- [x] Agent checkout pinned commit for rollback deploys
+- [x] `POST /api/deployments/:deploymentId/rollback`
+- [x] Rollback button on project environment deployments (functional)
+- [x] Postman Phase 9 verified locally
+
+**Run once:** `npm run db:push` (deployment rollback columns + `ROLLBACK` trigger enum)
+
+**Testing (Postman):** see `TESTING.md` → Phase 9
 
 ---
 
-## Phase 10 — Auto Deploy
+## Phase 10 — Auto Deploy ← current
 
-- [ ] GitHub webhook → deployment queue
+- [x] `POST /api/github/webhook` — verify `X-Hub-Signature-256`, handle `ping` + `push`
+- [x] Match installation + repo + branch + `autoDeployEnabled` → webhook queue
+- [x] Webhook worker → `createDeploymentForEnvironment(..., WEBHOOK)`
+- [ ] Postman / ngrok + real push verified locally
+
+**Configure:** `GITHUB_WEBHOOK_SECRET` in `backend/.env` + GitHub App webhook URL
+
+**Testing (Postman):** see `TESTING.md` → Phase 10
 
 ---
 

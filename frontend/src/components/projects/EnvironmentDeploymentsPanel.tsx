@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Rocket, Square } from "lucide-react";
+import { Loader2, Rocket, RotateCcw, Square } from "lucide-react";
 import { DeploymentStatusBadge } from "@/components/deployments/DeploymentStatusBadge";
 import { Button } from "@/components/ui/button";
 import { useDeploymentLiveUpdates } from "@/hooks/useDeploymentLiveUpdates";
@@ -13,6 +13,16 @@ import type { ServerStatus } from "@/types/servers.types";
 
 function deploymentsQueryKey(projectId: string, environmentId: string) {
   return ["projects", projectId, "environments", environmentId, "deployments"] as const;
+}
+
+function formatTrigger(trigger: DeploymentSummary["trigger"]): string {
+  if (trigger === "SAVE_AND_REDEPLOY") {
+    return "save & redeploy";
+  }
+  if (trigger === "ROLLBACK") {
+    return "rollback";
+  }
+  return trigger.toLowerCase();
 }
 
 interface EnvironmentDeploymentsPanelProps {
@@ -101,6 +111,29 @@ export function EnvironmentDeploymentsPanel({
     },
   });
 
+  const rollbackMutation = useMutation({
+    mutationFn: () => deploymentsService.rollbackDeployment(selectedId!),
+    onSuccess: (result) => {
+      setActionError(null);
+      setSelectedId(result.deployment.id);
+      queryClient.setQueryData<ListEnvironmentDeploymentsResponse>(listQueryKey, (current) => {
+        if (!current) {
+          return { deployments: [result.deployment] };
+        }
+        return {
+          deployments: [result.deployment, ...current.deployments],
+        };
+      });
+      void queryClient.prefetchQuery({
+        queryKey: deploymentDetailQueryKey(result.deployment.id),
+        queryFn: () => deploymentsService.getDeployment(result.deployment.id),
+      });
+    },
+    onError: (err) => {
+      setActionError(getApiErrorMessage(err, "Failed to rollback"));
+    },
+  });
+
   const cancelMutation = useMutation({
     mutationFn: () => deploymentsService.cancelDeployment(selectedId!),
     onSuccess: (result) => {
@@ -125,6 +158,14 @@ export function EnvironmentDeploymentsPanel({
   });
 
   const serverOffline = serverStatus !== "ONLINE";
+  const hasActiveDeployment = deployments.some((d) =>
+    deploymentsService.isActiveDeploymentStatus(d.status),
+  );
+  const canRollback =
+    deployment?.status === "SUCCESS" &&
+    Boolean(deployment.gitCommitSha) &&
+    !hasActiveDeployment &&
+    !serverOffline;
 
   return (
     <div className="mt-4 space-y-4 border-t pt-4">
@@ -141,6 +182,22 @@ export function EnvironmentDeploymentsPanel({
             >
               <Square className="h-4 w-4" />
               Cancel
+            </Button>
+          )}
+          {canRollback && selectedId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={rollbackMutation.isPending}
+              onClick={() => rollbackMutation.mutate()}
+            >
+              {rollbackMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4" />
+              )}
+              Rollback to this
             </Button>
           )}
           <Button
@@ -185,7 +242,7 @@ export function EnvironmentDeploymentsPanel({
                 >
                   <span className="flex flex-wrap items-center gap-2">
                     <DeploymentStatusBadge status={item.status} />
-                    <span className="text-muted-foreground">{item.trigger.toLowerCase()}</span>
+                    <span className="text-muted-foreground">{formatTrigger(item.trigger)}</span>
                   </span>
                   <span className="text-xs text-muted-foreground">{formatDateTime(item.createdAt)}</span>
                 </button>
@@ -199,6 +256,11 @@ export function EnvironmentDeploymentsPanel({
                 {selectedSummary && <DeploymentStatusBadge status={selectedSummary.status} />}
                 {deployment?.errorMessage && (
                   <span className="text-destructive">{deployment.errorMessage}</span>
+                )}
+                {deployment?.gitCommitSha && (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {deployment.gitCommitSha.slice(0, 7)}
+                  </span>
                 )}
                 {isActive && (
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">

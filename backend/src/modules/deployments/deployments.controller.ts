@@ -4,6 +4,7 @@ import {
   createDeploymentForEnvironment,
   getDeployment,
   listEnvironmentDeployments,
+  rollbackDeployment,
 } from "./deployments.service.js";
 
 export async function createEnvironmentDeploymentController(
@@ -62,6 +63,19 @@ export async function cancelDeploymentController(
   try {
     const result = await cancelDeployment(req.user!.userId, req.params.deploymentId as string);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function rollbackDeploymentController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await rollbackDeployment(req.user!.userId, req.params.deploymentId as string);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

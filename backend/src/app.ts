@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
+import { githubWebhookController } from "./modules/github/github-webhook.controller.js";
 import { healthRoutes } from "./modules/health/health.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { githubRoutes } from "./modules/github/github.routes.js";
@@ -19,6 +20,13 @@ app.use(
     credentials: true,
   }),
 );
+
+app.post(
+  "/api/github/webhook",
+  express.raw({ type: "application/json" }),
+  githubWebhookController,
+);
+
 app.use(express.json());
 app.use(cookieParser());
 

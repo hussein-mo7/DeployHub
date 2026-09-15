@@ -6,6 +6,7 @@ import {
   createEnvironmentDeploymentController,
   getDeploymentController,
   listEnvironmentDeploymentsController,
+  rollbackDeploymentController,
 } from "./deployments.controller.js";
 import {
   deploymentIdParamsSchema,
@@ -26,6 +27,12 @@ deploymentsRoutes.post(
   "/:deploymentId/cancel",
   validateParams(deploymentIdParamsSchema),
   cancelDeploymentController,
+);
+
+deploymentsRoutes.post(
+  "/:deploymentId/rollback",
+  validateParams(deploymentIdParamsSchema),
+  rollbackDeploymentController,
 );
 
 export const projectDeploymentRoutes = Router({ mergeParams: true });

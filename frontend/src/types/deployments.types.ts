@@ -11,7 +11,7 @@ export type DeploymentStatus = (typeof DEPLOYMENT_STATUSES)[number];
 
 export const ACTIVE_DEPLOYMENT_STATUSES = ["PENDING", "QUEUED", "RUNNING"] as const;
 
-export type DeploymentTrigger = "MANUAL" | "SAVE_AND_REDEPLOY" | "WEBHOOK";
+export type DeploymentTrigger = "MANUAL" | "SAVE_AND_REDEPLOY" | "WEBHOOK" | "ROLLBACK";
 
 export interface DeploymentSummary {
   id: string;
@@ -21,6 +21,9 @@ export interface DeploymentSummary {
   environmentName: string;
   status: DeploymentStatus;
   trigger: DeploymentTrigger;
+  branch: string | null;
+  gitCommitSha: string | null;
+  rollbackSourceDeploymentId: string | null;
   errorMessage: string | null;
   startedAt: string | null;
   finishedAt: string | null;
@@ -52,6 +55,10 @@ export interface GetDeploymentResponse {
 }
 
 export interface CancelDeploymentResponse {
+  deployment: DeploymentSummary;
+}
+
+export interface RollbackDeploymentResponse {
   deployment: DeploymentSummary;
 }
 

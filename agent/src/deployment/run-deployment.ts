@@ -2,7 +2,7 @@ import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import type { DeployCommandPayload, DeployServicePayload } from "../types/deploy.js";
 import { runServiceHealthCheck } from "./verify-http-health.js";
-import { gitCloneStderrFilter, runCommand } from "../utils/run-command.js";
+import { gitCloneStderrFilter, runCommand, runCommandCapture } from "../utils/run-command.js";
 
 function sanitizeName(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
@@ -43,21 +43,39 @@ async function cloneRepository(
   payload: DeployCommandPayload,
   sourceDir: string,
   log: (message: string) => void,
-): Promise<void> {
+): Promise<string> {
   await rm(sourceDir, { recursive: true, force: true });
   await mkdir(path.dirname(sourceDir), { recursive: true });
 
   const cloneUrl = `https://x-access-token:${payload.githubToken}@github.com/${payload.repoOwner}/${payload.repoName}.git`;
-  log(`Cloning ${payload.repoOwner}/${payload.repoName} @ ${payload.branch}...`);
+  const pinSha = payload.gitCommitSha?.trim();
 
-  await runCommand(
-    "git",
-    ["clone", "--progress", "--depth", "1", "--branch", payload.branch, cloneUrl, sourceDir],
-    {
-      onLine: log,
-      stderrLineFilter: gitCloneStderrFilter,
-    },
-  );
+  if (pinSha) {
+    log(`Fetching ${payload.repoOwner}/${payload.repoName} @ ${pinSha.slice(0, 7)}...`);
+    await mkdir(sourceDir, { recursive: true });
+    await runCommand("git", ["init"], { cwd: sourceDir, onLine: log });
+    await runCommand("git", ["remote", "add", "origin", cloneUrl], { cwd: sourceDir, onLine: log });
+    await runCommand(
+      "git",
+      ["fetch", "--depth", "1", "origin", pinSha],
+      { cwd: sourceDir, onLine: log, stderrLineFilter: gitCloneStderrFilter },
+    );
+    await runCommand("git", ["checkout", "FETCH_HEAD"], { cwd: sourceDir, onLine: log });
+  } else {
+    log(`Cloning ${payload.repoOwner}/${payload.repoName} @ ${payload.branch}...`);
+    await runCommand(
+      "git",
+      ["clone", "--progress", "--depth", "1", "--branch", payload.branch, cloneUrl, sourceDir],
+      {
+        onLine: log,
+        stderrLineFilter: gitCloneStderrFilter,
+      },
+    );
+  }
+
+  const sha = await runCommandCapture("git", ["rev-parse", "HEAD"], { cwd: sourceDir });
+  log(`Checked out commit ${sha} (${sha.slice(0, 7)})`);
+  return sha;
 }
 
 async function deployDockerfileService(
@@ -156,7 +174,7 @@ async function deployImageService(
 export async function runDeployment(
   payload: DeployCommandPayload,
   log: (message: string) => void,
-): Promise<void> {
+): Promise<string> {
   const workspaceDir = path.resolve(
     payload.workspaceRoot,
     payload.projectId,
@@ -164,7 +182,7 @@ export async function runDeployment(
   );
   const sourceDir = path.join(workspaceDir, "source");
 
-  await cloneRepository(payload, sourceDir, log);
+  const gitCommitSha = await cloneRepository(payload, sourceDir, log);
 
   for (const service of payload.services) {
     log(`Deploying service "${service.name}" (${service.deploymentMethod})...`);
@@ -182,4 +200,5 @@ export async function runDeployment(
   }
 
   log("All services deployed successfully.");
+  return gitCommitSha;
 }

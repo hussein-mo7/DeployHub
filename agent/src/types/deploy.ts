@@ -20,6 +20,7 @@ export interface DeployCommandPayload {
   repoOwner: string;
   repoName: string;
   branch: string;
+  gitCommitSha?: string | null;
   githubToken: string;
   workspaceRoot: string;
   services: DeployServicePayload[];

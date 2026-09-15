@@ -13,6 +13,16 @@ export async function runCommand(
   args: string[],
   options: RunCommandOptions = {},
 ): Promise<void> {
+  await runCommandCapture(command, args, options);
+}
+
+export async function runCommandCapture(
+  command: string,
+  args: string[],
+  options: RunCommandOptions = {},
+): Promise<string> {
+  let stdout = "";
+
   await new Promise<void>((resolve, reject) => {
     let lastFatalLine: string | undefined;
 
@@ -47,7 +57,11 @@ export async function runCommand(
           .forEach((line) => forwardLine(line, stream));
       };
 
-    child.stdout.on("data", handleData("stdout"));
+    child.stdout.on("data", (chunk: Buffer) => {
+      const text = chunk.toString();
+      stdout += text;
+      handleData("stdout")(chunk);
+    });
     child.stderr.on("data", handleData("stderr"));
 
     child.on("error", reject);
@@ -60,6 +74,8 @@ export async function runCommand(
       }
     });
   });
+
+  return stdout.trim();
 }
 
 /** Skip git's multi-line usage text when clone fails; keep real errors. */

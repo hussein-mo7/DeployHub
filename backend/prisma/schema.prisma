@@ -190,30 +190,39 @@ enum DeploymentTrigger {
   MANUAL
   SAVE_AND_REDEPLOY
   WEBHOOK
+  ROLLBACK
 }
 
 model Deployment {
-  id            String            @id @default(cuid())
-  userId        String
-  projectId     String
-  environmentId String
-  status        DeploymentStatus  @default(PENDING)
-  trigger       DeploymentTrigger @default(MANUAL)
-  errorMessage  String?
-  startedAt     DateTime?
-  finishedAt    DateTime?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id                         String            @id @default(cuid())
+  userId                     String
+  projectId                  String
+  environmentId              String
+  status                     DeploymentStatus  @default(PENDING)
+  trigger                    DeploymentTrigger @default(MANUAL)
+  /// Git branch used for this deployment (snapshot at deploy time)
+  branch                     String?
+  /// Commit deployed on success (required for rollback to that version)
+  gitCommitSha               String?
+  rollbackSourceDeploymentId String?
+  errorMessage               String?
+  startedAt                  DateTime?
+  finishedAt                 DateTime?
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
 
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  environment Environment     @relation(fields: [environmentId], references: [id], onDelete: Cascade)
-  logs        DeploymentLog[]
+  user                     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project                  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  environment              Environment     @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  rollbackSourceDeployment Deployment?     @relation("DeploymentRollback", fields: [rollbackSourceDeploymentId], references: [id], onDelete: SetNull)
+  rollbackRedeployments    Deployment[]    @relation("DeploymentRollback")
+  logs                     DeploymentLog[]
 
   @@index([userId])
   @@index([projectId])
   @@index([environmentId])
   @@index([status])
+  @@index([rollbackSourceDeploymentId])
 }
 
 model DeploymentLog {

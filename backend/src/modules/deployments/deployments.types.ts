@@ -9,6 +9,9 @@ export interface DeploymentSummary {
   environmentName: string;
   status: DeploymentStatusValue;
   trigger: DeploymentTriggerValue;
+  branch: string | null;
+  gitCommitSha: string | null;
+  rollbackSourceDeploymentId: string | null;
   errorMessage: string | null;
   startedAt: string | null;
   finishedAt: string | null;
@@ -47,6 +50,8 @@ export interface DeployCommandPayload {
   repoOwner: string;
   repoName: string;
   branch: string;
+  /** When set, agent checks out this commit instead of branch tip */
+  gitCommitSha?: string | null;
   githubToken: string;
   workspaceRoot: string;
   services: DeployServicePayload[];

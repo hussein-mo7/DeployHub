@@ -9,7 +9,7 @@ export const DEPLOYMENT_STATUSES = [
 
 export const ACTIVE_DEPLOYMENT_STATUSES = ["PENDING", "QUEUED", "RUNNING"] as const;
 
-export const DEPLOYMENT_TRIGGERS = ["MANUAL", "SAVE_AND_REDEPLOY", "WEBHOOK"] as const;
+export const DEPLOYMENT_TRIGGERS = ["MANUAL", "SAVE_AND_REDEPLOY", "WEBHOOK", "ROLLBACK"] as const;
 
 export const DEPLOYMENT_QUEUE_JOB = "deploy-environment";
 

@@ -11,8 +11,9 @@ function emitStatus(
   deploymentId: string,
   status: "SUCCESS" | "FAILED",
   errorMessage?: string,
+  gitCommitSha?: string,
 ): void {
-  socket.emit("DEPLOYMENT_STATUS", { deploymentId, status, errorMessage });
+  socket.emit("DEPLOYMENT_STATUS", { deploymentId, status, errorMessage, gitCommitSha });
 }
 
 export function registerDeployHandler(socket: Socket): void {
@@ -26,8 +27,10 @@ export function registerDeployHandler(socket: Socket): void {
 
     try {
       emitLog(socket, deploymentId, "Agent received deploy command.");
-      await runDeployment(payload, (message) => emitLog(socket, deploymentId, message));
-      emitStatus(socket, deploymentId, "SUCCESS");
+      const gitCommitSha = await runDeployment(payload, (message) =>
+        emitLog(socket, deploymentId, message),
+      );
+      emitStatus(socket, deploymentId, "SUCCESS", undefined, gitCommitSha);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Deployment failed";
       emitLog(socket, deploymentId, `ERROR: ${message}`);

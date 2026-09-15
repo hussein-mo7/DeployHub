@@ -578,9 +578,94 @@ Redeploy (**7.1**). **Expected:** **`FAILED`**, log contains `Health check faile
 
 ---
 
-## Phase 9+ — Coming soon
+## Phase 9 — Rollback
 
-Tests will be added here as each phase is built. See `PROGRESS.md` for implementation status.
+Redeploy a **previous successful** deployment by pinning the **Git commit** stored on that deployment record.
+
+**Run once:** `npm run db:push` (adds `branch`, `gitCommitSha`, `rollbackSourceDeploymentId` on `Deployment`, `ROLLBACK` trigger).
+
+**Note:** Deployments from before Phase 9 have no `gitCommitSha`. Run **7.1** once after upgrading so the success record stores a commit; then rollback works.
+
+### Test 9.1 Rollback to a successful deployment
+
+1. Have at least one deployment with **`SUCCESS`** and a stored commit (check **7.3** — logs include `Checked out commit …`, or GET deployment shows `gitCommitSha`).
+2. Optionally run **7.1** again so `main` moves forward (simulates a bad deploy you want to undo).
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/deployments/{{deploymentId}}/rollback` |
+| **Body** | none |
+
+Use `deploymentId` of the **older SUCCESS** deployment you want to restore (not the latest bad one).
+
+**Expected:** `201` — new deployment with `trigger: "ROLLBACK"`, `rollbackSourceDeploymentId` set, `gitCommitSha` matching the source.
+
+3. **7.3** on the **new** deployment id — logs should show fetch/checkout of the same commit, then `SUCCESS`.
+4. App on host port should match the rolled-back version.
+
+### Test 9.2 Rollback rejected (optional)
+
+| | |
+|---|---|
+| **POST** | `.../deployments/{{failedDeploymentId}}/rollback` where status is **FAILED** |
+| **Expected** | `400` — `DEPLOYMENT_NOT_ROLLBACKABLE` |
+
+---
+
+## Phase 10 — Auto deploy (GitHub push webhook)
+
+When GitHub sends a **`push`** event, DeployHub queues deployments for every **environment** where:
+
+- Project **`repoOwner` / `repoName`** match the repository  
+- Environment **`branch`** matches the pushed branch  
+- **`autoDeployEnabled`** is `true`  
+- GitHub App **installation** matches the webhook payload  
+
+**Configure once**
+
+1. Set **`GITHUB_WEBHOOK_SECRET`** in `backend/.env` (same value as in GitHub App → Webhook secret).  
+2. GitHub App webhook URL: `https://<your-public-host>/api/github/webhook` (local dev: use [ngrok](https://ngrok.com) → `https://xxxx.ngrok.io/api/github/webhook`).  
+3. Subscribe to **Push** events.  
+4. Restart backend + worker.
+
+**Postman env:** add `githubWebhookSecret` = same as `GITHUB_WEBHOOK_SECRET`.
+
+### Test 10.1 Enable auto deploy on environment
+
+| | |
+|---|---|
+| **Method** | `PATCH` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}` |
+| **Body** | `{ "autoDeployEnabled": true }` |
+
+Ensure environment **`branch`** matches what you push (e.g. `"main"`).
+
+### Test 10.2 Simulate push webhook (local)
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/github/webhook` |
+| **Auth** | None (signature headers instead) |
+| **Headers** | Set in pre-request script (see collection **10.2**) |
+| **Body (raw JSON)** | See collection — uses `repoOwner`, `repoName`, `githubInstallationId` |
+
+**Pre-request script (collection):** HMAC `X-Hub-Signature-256`, `X-GitHub-Event: push`, `X-GitHub-Delivery`.
+
+**Expected:** `202` — `{ "ok": true, "queued": 1, ... }` then worker logs + new deployment with **`trigger": "WEBHOOK"`**.
+
+**Prerequisites:** `npm run worker`, agent **ONLINE**, services configured (port/health like Phase 8).
+
+### Test 10.3 Real GitHub push (optional)
+
+Push a commit to the linked repo/branch → webhook hits your public URL → same as 10.2.
+
+**Pass:** New deployment appears in **7.2** with trigger **WEBHOOK** and reaches **SUCCESS**.
+
+---
+
+## Phase 11+ — Coming soon
 
 ---
 
@@ -595,7 +680,7 @@ In your Postman workspace **Hussein Mohammed's Workspace**:
 
 Account credentials live in **DeployHub Local** environment variables. After register, paste the token into `verificationToken`. Run **0 — Session → Login** before Phase 3+.
 
-**Phase folders in collection:** Phase 1–8 (Phase 5 **5.5** saves `environmentId`; Phase 7 **7.1** saves `deploymentId`; Phase 8 **8.1–8.4** health checks).
+**Phase folders in collection:** Phase 1–10 (Phase 5 **5.5** saves `environmentId`; Phase 7 **7.1** saves `deploymentId`; Phase 8 health; Phase 9 rollback; Phase 10 webhook).
 
 ---
 
@@ -620,4 +705,7 @@ Account credentials live in **DeployHub Local** environment variables. After reg
 | Phase 6 missing `environmentId` | Run Phase 5 **5.5 Create Environment** (saves `environmentId`) |
 | Deployment stays QUEUED | Start `npm run worker` and ensure agent is ONLINE |
 | Deployment FAILED clone/build | Git + Docker installed; GitHub App access to repo; check **7.3** logs |
+| Webhook 503 not configured | Set `GITHUB_WEBHOOK_SECRET` in `backend/.env` |
+| Webhook 401 invalid signature | Postman pre-request must sign **exact** raw body with same secret |
+| Webhook queued 0 | Enable **10.1** auto deploy; match repo/branch/installation id in payload |
 | New secret requires value | First save of a secret key must include `value`; omit only when updating existing secret |

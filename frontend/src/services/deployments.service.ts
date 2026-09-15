@@ -5,6 +5,7 @@ import type {
   DeploymentSummary,
   GetDeploymentResponse,
   ListEnvironmentDeploymentsResponse,
+  RollbackDeploymentResponse,
 } from "@/types/deployments.types";
 import * as projectsService from "./projects.service";
 
@@ -36,6 +37,15 @@ export async function getDeployment(deploymentId: string): Promise<GetDeployment
 export async function cancelDeployment(deploymentId: string): Promise<CancelDeploymentResponse> {
   const { data } = await api.post<CancelDeploymentResponse>(
     `/deployments/${deploymentId}/cancel`,
+  );
+  return data;
+}
+
+export async function rollbackDeployment(
+  deploymentId: string,
+): Promise<RollbackDeploymentResponse> {
+  const { data } = await api.post<RollbackDeploymentResponse>(
+    `/deployments/${deploymentId}/rollback`,
   );
   return data;
 }

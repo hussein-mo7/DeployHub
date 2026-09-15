@@ -32,6 +32,9 @@ function toDeploymentSummary(
     environmentName: deployment.environment.name,
     status: deployment.status,
     trigger: deployment.trigger,
+    branch: deployment.branch,
+    gitCommitSha: deployment.gitCommitSha,
+    rollbackSourceDeploymentId: deployment.rollbackSourceDeploymentId,
     errorMessage: deployment.errorMessage,
     startedAt: deployment.startedAt?.toISOString() ?? null,
     finishedAt: deployment.finishedAt?.toISOString() ?? null,
@@ -83,6 +86,69 @@ async function getOwnedDeployment(userId: string, deploymentId: string) {
   return deployment;
 }
 
+interface QueueDeploymentInput {
+  userId: string;
+  projectId: string;
+  environmentId: string;
+  serverId: string;
+  trigger: DeploymentTriggerValue;
+  branch: string;
+  gitCommitSha?: string | null;
+  rollbackSourceDeploymentId?: string | null;
+}
+
+async function queueDeploymentJob(input: QueueDeploymentInput): Promise<DeploymentSummary> {
+  const deployment = await prisma.deployment.create({
+    data: {
+      userId: input.userId,
+      projectId: input.projectId,
+      environmentId: input.environmentId,
+      trigger: input.trigger as DeploymentTrigger,
+      status: "PENDING",
+      branch: input.branch,
+      gitCommitSha: input.gitCommitSha ?? null,
+      rollbackSourceDeploymentId: input.rollbackSourceDeploymentId ?? null,
+    },
+    include: {
+      project: { select: { name: true } },
+      environment: { select: { name: true } },
+    },
+  });
+
+  await deploymentQueue.add(
+    DEPLOYMENT_QUEUE_JOB,
+    {
+      deploymentId: deployment.id,
+      userId: input.userId,
+      projectId: input.projectId,
+      environmentId: input.environmentId,
+      serverId: input.serverId,
+      trigger: input.trigger,
+    },
+    { jobId: `deploy-${deployment.id}` },
+  );
+
+  const queued = await prisma.deployment.update({
+    where: { id: deployment.id },
+    data: { status: "QUEUED" },
+    include: {
+      project: { select: { name: true } },
+      environment: { select: { name: true } },
+    },
+  });
+
+  if (input.trigger === "ROLLBACK" && input.gitCommitSha) {
+    await prisma.deploymentLog.create({
+      data: {
+        deploymentId: deployment.id,
+        message: `Rollback queued — redeploying commit ${input.gitCommitSha.slice(0, 7)} on branch ${input.branch}.`,
+      },
+    });
+  }
+
+  return toDeploymentSummary(queued);
+}
+
 export async function createDeploymentForEnvironment(
   userId: string,
   projectId: string,
@@ -112,43 +178,75 @@ export async function createDeploymentForEnvironment(
     throw new AppError(400, "GitHub is not connected", ERROR_CODES.GITHUB_NOT_CONNECTED);
   }
 
-  const deployment = await prisma.deployment.create({
-    data: {
-      userId,
-      projectId,
-      environmentId,
-      trigger: trigger as DeploymentTrigger,
-      status: "PENDING",
-    },
-    include: {
-      project: { select: { name: true } },
-      environment: { select: { name: true } },
-    },
+  const deployment = await queueDeploymentJob({
+    userId,
+    projectId,
+    environmentId,
+    serverId: environment.serverId,
+    trigger,
+    branch: environment.branch,
   });
 
-  await deploymentQueue.add(
-    DEPLOYMENT_QUEUE_JOB,
-    {
-      deploymentId: deployment.id,
-      userId,
-      projectId,
-      environmentId,
-      serverId: environment.serverId,
-      trigger,
-    },
-    { jobId: `deploy-${deployment.id}` },
-  );
+  return { deployment };
+}
 
-  const queued = await prisma.deployment.update({
-    where: { id: deployment.id },
-    data: { status: "QUEUED" },
-    include: {
-      project: { select: { name: true } },
-      environment: { select: { name: true } },
-    },
+export async function rollbackDeployment(
+  userId: string,
+  deploymentId: string,
+): Promise<{ deployment: DeploymentSummary }> {
+  const source = await getOwnedDeployment(userId, deploymentId);
+
+  if (source.status !== "SUCCESS") {
+    throw new AppError(
+      400,
+      "Only successful deployments can be rolled back to",
+      ERROR_CODES.DEPLOYMENT_NOT_ROLLBACKABLE,
+    );
+  }
+
+  if (!source.gitCommitSha) {
+    throw new AppError(
+      400,
+      "This deployment has no stored commit. Deploy again once, then rollback will be available.",
+      ERROR_CODES.DEPLOYMENT_NOT_ROLLBACKABLE,
+    );
+  }
+
+  await assertNoActiveDeployment(source.projectId, source.environmentId);
+
+  const { environment } = await getEnvironment(userId, source.projectId, source.environmentId);
+
+  const services = await prisma.service.findMany({
+    where: { projectId: source.projectId },
   });
 
-  return { deployment: toDeploymentSummary(queued) };
+  if (services.length === 0) {
+    throw new AppError(
+      400,
+      "Project has no services to deploy",
+      ERROR_CODES.DEPLOYMENT_NO_SERVICES,
+    );
+  }
+
+  const installation = await prisma.gitHubInstallation.findUnique({ where: { userId } });
+  if (!installation) {
+    throw new AppError(400, "GitHub is not connected", ERROR_CODES.GITHUB_NOT_CONNECTED);
+  }
+
+  const branch = source.branch ?? environment.branch;
+
+  const deployment = await queueDeploymentJob({
+    userId,
+    projectId: source.projectId,
+    environmentId: source.environmentId,
+    serverId: environment.serverId,
+    trigger: "ROLLBACK",
+    branch,
+    gitCommitSha: source.gitCommitSha,
+    rollbackSourceDeploymentId: source.id,
+  });
+
+  return { deployment };
 }
 
 export async function listEnvironmentDeployments(
@@ -189,6 +287,29 @@ export async function getDeployment(
   };
 }
 
+const CHECKED_OUT_COMMIT_LOG = /Checked out commit ([0-9a-f]{7,40})\b/i;
+
+/** Fallback when agent status payload omits gitCommitSha (e.g. old agent build). */
+export async function resolveGitCommitShaFromDeploymentLogs(
+  deploymentId: string,
+): Promise<string | null> {
+  const logs = await prisma.deploymentLog.findMany({
+    where: { deploymentId },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+    select: { message: true },
+  });
+
+  for (const entry of logs) {
+    const match = CHECKED_OUT_COMMIT_LOG.exec(entry.message);
+    if (match?.[1]) {
+      return match[1].toLowerCase();
+    }
+  }
+
+  return null;
+}
+
 export async function appendDeploymentLog(
   deploymentId: string,
   message: string,
@@ -221,6 +342,7 @@ export async function markDeploymentFinished(
   deploymentId: string,
   status: "SUCCESS" | "FAILED" | "CANCELLED",
   errorMessage?: string,
+  gitCommitSha?: string | null,
 ): Promise<void> {
   await prisma.deployment.update({
     where: { id: deploymentId },
@@ -228,6 +350,9 @@ export async function markDeploymentFinished(
       status,
       finishedAt: new Date(),
       errorMessage: errorMessage ?? null,
+      ...(status === "SUCCESS" && gitCommitSha
+        ? { gitCommitSha: gitCommitSha.trim().slice(0, 40) }
+        : {}),
     },
   });
 
@@ -272,7 +397,8 @@ export async function buildDeployCommandPayload(
     environmentId: deployment.environmentId,
     repoOwner: deployment.project.repoOwner,
     repoName: deployment.project.repoName,
-    branch: deployment.environment.branch,
+    branch: deployment.branch ?? deployment.environment.branch,
+    gitCommitSha: deployment.gitCommitSha,
     githubToken,
     workspaceRoot,
     services: services.map((service: Service) => ({
