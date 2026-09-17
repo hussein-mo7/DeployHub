@@ -36,21 +36,6 @@ export async function callbackController(
       return;
     }
 
-    if (env.NODE_ENV === "development") {
-      res
-        .status(200)
-        .type("html")
-        .send(
-          `<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem">` +
-            `<h1>GitHub connected</h1>` +
-            `<p>Account: <strong>${integration.accountLogin ?? "unknown"}</strong></p>` +
-            `<p>Installation ID: <strong>${integration.installationId ?? "unknown"}</strong></p>` +
-            `<p>Close this tab and continue testing in Postman (<code>3.3</code> → <code>3.4</code> → <code>3.5</code>).</p>` +
-            `</body></html>`,
-        );
-      return;
-    }
-
     res.redirect(`${env.CLIENT_URL}/settings/github?github=connected`);
   } catch (error) {
     next(error);

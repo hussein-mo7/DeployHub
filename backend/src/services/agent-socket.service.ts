@@ -59,7 +59,10 @@ export async function handleAgentHeartbeat(serverId: string): Promise<void> {
   if (socketId) {
     await redis.set(agentOnlineKey(serverId), socketId, "EX", AGENT_ONLINE_TTL_SECONDS);
   }
-  await touchServerHeartbeat(serverId);
+  const updated = await touchServerHeartbeat(serverId);
+  if (!updated) {
+    logger.warn(`Heartbeat for unknown server ${serverId} — agent should re-register`);
+  }
 }
 
 export async function syncStaleAgents(): Promise<void> {

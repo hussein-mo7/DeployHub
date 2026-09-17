@@ -1,4 +1,9 @@
 import { z } from "zod";
+import { environmentIdParamsSchema } from "./projects.schema.js";
+
+export const envVariableIdParamsSchema = environmentIdParamsSchema.extend({
+  variableId: z.string().min(1),
+});
 
 const envVariableInputSchema = z.object({
   key: z

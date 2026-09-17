@@ -20,6 +20,7 @@ import {
 } from "./projects.controller.js";
 import {
   listEnvironmentVariablesController,
+  revealEnvironmentVariableController,
   saveEnvironmentVariablesController,
 } from "./env-variables.controller.js";
 import {
@@ -33,7 +34,10 @@ import {
   updateProjectSchema,
   updateServiceSchema,
 } from "./projects.schema.js";
-import { saveEnvironmentVariablesSchema } from "./env-variables.schema.js";
+import {
+  envVariableIdParamsSchema,
+  saveEnvironmentVariablesSchema,
+} from "./env-variables.schema.js";
 
 export const projectsRoutes = Router();
 
@@ -118,6 +122,11 @@ projectsRoutes.get(
   "/:projectId/environments/:environmentId/variables",
   validateParams(environmentIdParamsSchema),
   listEnvironmentVariablesController,
+);
+projectsRoutes.get(
+  "/:projectId/environments/:environmentId/variables/:variableId/reveal",
+  validateParams(envVariableIdParamsSchema),
+  revealEnvironmentVariableController,
 );
 projectsRoutes.put(
   "/:projectId/environments/:environmentId/variables",

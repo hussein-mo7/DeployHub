@@ -9,7 +9,8 @@ import { githubRoutes } from "./modules/github/github.routes.js";
 import { serversRoutes } from "./modules/servers/servers.routes.js";
 import { agentsRoutes } from "./modules/agents/agents.routes.js";
 import { projectsRoutes } from "./modules/projects/projects.routes.js";
-import { projectDeploymentRoutes, deploymentsRoutes } from "./modules/deployments/deployments.routes.js";
+import { deploymentsRoutes, projectDeploymentRoutes } from "./modules/deployments/deployments.routes.js";
+import { configRoutes } from "./modules/config/config.routes.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 
 export const app = express();
@@ -35,6 +36,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/health", healthRoutes);
+app.use("/api/config", configRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/servers", serversRoutes);

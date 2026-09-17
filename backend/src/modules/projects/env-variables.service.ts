@@ -181,3 +181,42 @@ export async function getDecryptedEnvironmentVariables(
 
   return result;
 }
+
+export async function revealEnvironmentVariable(
+  userId: string,
+  projectId: string,
+  environmentId: string,
+  variableId: string,
+): Promise<{ variableId: string; key: string; value: string }> {
+  await getEnvironment(userId, projectId, environmentId);
+
+  const variable = await prisma.environmentVariable.findFirst({
+    where: { id: variableId, environmentId },
+  });
+
+  if (!variable) {
+    throw new AppError(404, "Environment variable not found", ERROR_CODES.NOT_FOUND);
+  }
+
+  if (!variable.isSecret) {
+    return {
+      variableId: variable.id,
+      key: variable.key,
+      value: variable.value ?? "",
+    };
+  }
+
+  if (!variable.encryptedValue) {
+    throw new AppError(
+      404,
+      "No secret value stored for this variable",
+      ERROR_CODES.NOT_FOUND,
+    );
+  }
+
+  return {
+    variableId: variable.id,
+    key: variable.key,
+    value: decryptSecret(variable.encryptedValue),
+  };
+}

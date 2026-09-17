@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import {
   listEnvironmentVariables,
+  revealEnvironmentVariable,
   saveEnvironmentVariables,
 } from "./env-variables.service.js";
 
@@ -14,6 +15,24 @@ export async function listEnvironmentVariablesController(
       req.user!.userId,
       req.params.projectId as string,
       req.params.environmentId as string,
+    );
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function revealEnvironmentVariableController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await revealEnvironmentVariable(
+      req.user!.userId,
+      req.params.projectId as string,
+      req.params.environmentId as string,
+      req.params.variableId as string,
     );
     res.json(result);
   } catch (error) {

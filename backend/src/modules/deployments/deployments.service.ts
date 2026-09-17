@@ -75,7 +75,6 @@ async function getOwnedDeployment(userId: string, deploymentId: string) {
     where: { id: deploymentId, userId },
     include: {
       project: { select: { name: true } },
-      environment: { select: { name: true } },
     },
   });
 
@@ -83,7 +82,16 @@ async function getOwnedDeployment(userId: string, deploymentId: string) {
     throw new AppError(404, "Deployment not found", ERROR_CODES.DEPLOYMENT_NOT_FOUND);
   }
 
-  return deployment;
+  const environment = await prisma.environment.findUnique({
+    where: { id: deployment.environmentId },
+    select: { name: true },
+  });
+
+  if (!environment) {
+    throw new AppError(404, "Deployment not found", ERROR_CODES.DEPLOYMENT_NOT_FOUND);
+  }
+
+  return { ...deployment, environment };
 }
 
 interface QueueDeploymentInput {

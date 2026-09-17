@@ -1,6 +1,6 @@
 import type { Server } from "@prisma/client";
 import { prisma } from "../../config/database.js";
-import { env } from "../../config/env.js";
+import { getPublicApiBaseUrl } from "../../config/public-url.js";
 import { REGISTRATION_TOKEN_MAX_AGE_MS } from "../../constants/servers.js";
 import { ERROR_CODES } from "../../constants/errors.js";
 import { AppError } from "../../middleware/error.middleware.js";
@@ -22,7 +22,7 @@ function toServerSummary(server: Server): ServerSummary {
 }
 
 function buildInstallCommand(registrationToken: string): string {
-  const baseUrl = `http://localhost:${env.PORT}`;
+  const baseUrl = getPublicApiBaseUrl();
   return `curl -fsSL ${baseUrl}/api/agents/install.sh | bash -s -- ${registrationToken}`;
 }
 
