@@ -152,6 +152,49 @@ Register new email → try login **before** verify.
 
 **Phase 2 pass:** Full register → verify → login → me → refresh → logout flow works.
 
+### Test 2.10 Patch profile (session required)
+
+| | |
+|---|---|
+| **Method** | `PATCH` |
+| **URL** | `{{baseUrl}}/api/auth/me` |
+| **Body** | `{ "name": "{{testName}}" }` |
+| **Expected** | `200` — updated user + `session` TTL metadata |
+
+### Test 2.11 Forgot password
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/auth/forgot-password` |
+| **Body** | `{ "email": "{{testEmail}}" }` |
+| **Expected** | `200` — generic message (check email or dev console for reset link) |
+
+### Test 2.12 Change password (session required)
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/auth/change-password` |
+| **Body** | `currentPassword`, `newPassword`, `confirmNewPassword` |
+| **Expected** | `200` — cookies cleared; login again with new password |
+
+Postman folder: **Release 2.0 — Config & Auth** · **Phase 2 — Auth** (2.10–2.12).
+
+---
+
+## Release 2.0 — Public config
+
+### Test 2.0.1 Public config (no auth)
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `{{baseUrl}}/api/config/public` |
+| **Expected** | `200` — `{ "publicApiUrl", "agentDockerImage", "agentInstallMode" }` |
+
+When `AGENT_DOCKER_IMAGE` is set in `backend/.env`, `agentInstallMode` is `"docker"`.
+
 ---
 
 ## Phase 3 — GitHub

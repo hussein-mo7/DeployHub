@@ -1,13 +1,13 @@
-# DeployHub — Documentation index
+# DeployHub — documentation
 
-| Document | Location |
-|----------|----------|
-| Getting started | [`../README.md`](../README.md) |
-| MVP requirements | [`../SRS.md`](../SRS.md) |
-| System architecture | [`../ARCHITECTURE.md`](../ARCHITECTURE.md) |
-| MVP implementation phases | [`../PROGRESS.md`](../PROGRESS.md) |
-| Post-MVP roadmap & UX backlog | [`../ROADMAP.md`](../ROADMAP.md) |
-| UI guidelines (1.1) | [`DESIGN.md`](./DESIGN.md) |
-| API testing (Postman) | [`../TESTING.md`](../TESTING.md) |
-
-**For recruiters:** start at the root README, then ARCHITECTURE + ROADMAP (shows MVP scope and what you planned next).
+| Document | Description |
+|----------|-------------|
+| [../README.md](../README.md) | Getting started |
+| **[RELEASE-2.0.md](./RELEASE-2.0.md)** | **Active work** — scope, phases, agent install model |
+| [DESIGN.md](./DESIGN.md) | UI guidelines |
+| [AGENT-SETUP.md](./AGENT-SETUP.md) | VPS agent install (until SSH wizard ships) |
+| [../ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture |
+| [../ROADMAP.md](../ROADMAP.md) | Long-term backlog |
+| [../PROGRESS.md](../PROGRESS.md) | MVP implementation history |
+| [../TESTING.md](../TESTING.md) | API testing reference |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Git commits + Postman sync |

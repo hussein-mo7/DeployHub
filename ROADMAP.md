@@ -1,20 +1,6 @@
 # DeployHub — Product Roadmap
 
-**Status:** MVP (backend + functional UI) shipped · **Next:** Release **1.1 — Product & UX** before large **2.0** features.
-
-This document is the single backlog for *what to build next* and *how the product should feel*. Requirements for the shipped MVP stay frozen in [`SRS.md`](./SRS.md) §8.
-
----
-
-## MVP vs 1.1 vs 2.0
-
-| Release | Goal | Scope |
-|---------|------|--------|
-| **MVP (done)** | Prove the deployment loop works | Auth, GitHub, agent, projects, env vars, deploy strategies, logs, health, rollback, webhook auto-deploy |
-| **1.1 Product polish** | Feel like a real SaaS control panel | Design system, UX fixes, secret reveal, environment/project flows, settings, empty states, responsive layout |
-| **2.0 Platform** | Scale and teams | RBAC, orgs, notifications, monitoring, preview envs, billing, more git providers |
-
-**Recommendation:** Treat everything in §2–§5 below as **1.1** unless marked **2.0**. Do not mix “pretty UI” with “teams/RBAC” — recruiters and users both benefit from a polished 1.1 first.
+**Status:** MVP shipped · **Active development:** [docs/RELEASE-2.0.md](./docs/RELEASE-2.0.md)
 
 ---
 

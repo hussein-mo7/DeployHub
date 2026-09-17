@@ -153,9 +153,18 @@ See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
 
 | Milestone | State |
 |-----------|--------|
-| **MVP** | Shipped — deploy loop, agent, webhooks, rollback, secrets (API) |
-| **Release 1.1** | Planned — professional UI, env secret reveal, design system ([`ROADMAP.md`](./ROADMAP.md)) |
-| **2.0** | Backlog — teams, notifications, advanced deploy ([`ROADMAP.md`](./ROADMAP.md) §2 P2) |
+| **MVP** | Shipped — full deploy loop ([`PROGRESS.md`](./PROGRESS.md)) |
+| **Release 2.0** | **In progress** — Docker agent, public API URL, one-time SSH onboarding ([`docs/RELEASE-2.0.md`](./docs/RELEASE-2.0.md)) |
+| **Later** | Teams, providers, notifications ([`ROADMAP.md`](./ROADMAP.md)) |
+
+---
+
+## Highlights for reviewers
+
+- **Monorepo:** React control panel, Express API, BullMQ workers, Socket.IO live logs, Prisma/Postgres, Redis queues  
+- **Agent model:** Lightweight process on each VPS executes Docker/Git deploys; outbound connection to control plane (no inbound SSH required for deploys)  
+- **2.0 direction:** One-time SSH bootstrap (credentials not stored) + agent delivered as **Docker image** — not cloning this repo onto customer servers  
+- **Docs:** [`ARCHITECTURE.md`](./ARCHITECTURE.md), [`docs/RELEASE-2.0.md`](./docs/RELEASE-2.0.md), frozen MVP scope in [`SRS.md`](./SRS.md)
 
 ---
 
@@ -163,13 +172,15 @@ See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
 
 | Document | Description |
 |----------|-------------|
-| [SRS.md](./SRS.md) | MVP functional requirements (frozen) |
-| [ROADMAP.md](./ROADMAP.md) | Post-MVP product & UX backlog |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, folder structure, tech decisions |
-| [PROGRESS.md](./PROGRESS.md) | MVP phased implementation tracker |
-| [docs/DESIGN.md](./docs/DESIGN.md) | UI guidelines for Release 1.1 |
-| [TESTING.md](./TESTING.md) | Postman API testing guide |
-| [docs/README.md](./docs/README.md) | Documentation index |
+| [**docs/RELEASE-2.0.md**](./docs/RELEASE-2.0.md) | Current release plan & build phases |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design |
+| [ROADMAP.md](./ROADMAP.md) | Long-term product backlog |
+| [PROGRESS.md](./PROGRESS.md) | MVP phase history |
+| [SRS.md](./SRS.md) | MVP requirements (frozen) |
+| [docs/DESIGN.md](./docs/DESIGN.md) | UI guidelines |
+| [docs/AGENT-SETUP.md](./docs/AGENT-SETUP.md) | Agent install on VPS |
+| [TESTING.md](./TESTING.md) | API testing reference |
+| [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) | Git + Postman workflow |
 
 ---
 

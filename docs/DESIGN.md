@@ -54,11 +54,12 @@ Replace default shadcn blue only after picking brand hue in ROADMAP §3.
 
 ---
 
-## Layout
+## Layout (Release 1.1)
 
-- App shell: sidebar width `240px` (collapsible to icons).  
-- Main content: `p-6`, `max-w-6xl` where readable; full width for log viewer.  
-- Breadcrumbs on nested routes (project, server detail).
+- **Width:** Main content is **full width** — use `PageContent` (padding only, no `max-w-*` cap).
+- **Padding:** `px-4 sm:px-6 lg:px-8` — shared via `pagePaddingX` on headers.
+- **Breakpoints:** `sm` 640 · `md` 768 · `lg` 1024 (sidebar) · `2xl` 1536 (4-col stats).
+- **Mobile:** Top app bar + drawer nav below `lg`. Tables become card lists below `md` where noted.
 
 ---
 
