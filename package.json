@@ -14,6 +14,7 @@
     "dev:agent": "npm run dev -w agent",
     "worker": "npm run worker -w backend",
     "build": "npm run build -w frontend && npm run build -w backend && npm run build -w agent",
+    "docker:agent": "docker build -f agent/Dockerfile -t deployhub-agent:local .",
     "db:generate": "npm run db:generate -w backend",
     "db:migrate": "npm run db:migrate -w backend",
     "db:push": "npm run db:push -w backend"
