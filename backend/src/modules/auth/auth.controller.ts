@@ -8,6 +8,10 @@ import {
   resendVerificationEmail,
   getUserById,
   toAuthResponse,
+  updateUserProfile,
+  changeUserPassword,
+  requestPasswordReset,
+  resetPasswordWithToken,
 } from "./auth.service.js";
 import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest } from "../../utils/cookies.js";
 
@@ -109,6 +113,59 @@ export async function meController(req: Request, res: Response, next: NextFuncti
     }
 
     res.json(toAuthResponse(user));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateProfileController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const user = await updateUserProfile(req.user!.userId, req.body);
+    res.json(toAuthResponse(user));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function changePasswordController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await changeUserPassword(req.user!.userId, req.body);
+    clearAuthCookies(res);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function forgotPasswordController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await requestPasswordReset(req.body);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resetPasswordController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await resetPasswordWithToken(req.body);
+    res.json(result);
   } catch (error) {
     next(error);
   }

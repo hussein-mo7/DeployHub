@@ -1,17 +1,26 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../../config/database.js";
+import { env } from "../../config/env.js";
 import {
   BCRYPT_ROUNDS,
   EMAIL_VERIFICATION_MAX_AGE_MS,
+  PASSWORD_RESET_MAX_AGE_MS,
   REFRESH_TOKEN_MAX_AGE_MS,
 } from "../../constants/auth.js";
 import { AppError } from "../../middleware/error.middleware.js";
 import { ERROR_CODES } from "../../constants/errors.js";
 import { signAccessToken } from "../../utils/jwt.js";
 import { generateOpaqueToken, hashToken } from "../../utils/tokens.js";
-import { sendVerificationEmail } from "../../utils/email.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../../utils/email.js";
 import type { AuthUser, SessionTokens } from "./auth.types.js";
-import type { LoginInput, RegisterInput, ResendVerificationInput } from "./auth.schema.js";
+import type {
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResendVerificationInput,
+  ResetPasswordInput,
+} from "./auth.schema.js";
 
 const userSelect = {
   id: true,
@@ -209,6 +218,118 @@ export async function getUserById(userId: string): Promise<AuthUser | null> {
   return user ? toAuthUser(user) : null;
 }
 
+export async function updateUserProfile(
+  userId: string,
+  input: { name: string },
+): Promise<AuthUser> {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { name: input.name },
+    select: userSelect,
+  });
+
+  return toAuthUser(user);
+}
+
+export async function changeUserPassword(
+  userId: string,
+  input: ChangePasswordInput,
+): Promise<{ message: string }> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (!user) {
+    throw new AppError(401, "User not found", ERROR_CODES.UNAUTHORIZED);
+  }
+
+  const valid = await bcrypt.compare(input.currentPassword, user.password);
+  if (!valid) {
+    throw new AppError(401, "Current password is incorrect", ERROR_CODES.INVALID_CURRENT_PASSWORD);
+  }
+
+  const sameAsOld = await bcrypt.compare(input.newPassword, user.password);
+  if (sameAsOld) {
+    throw new AppError(400, "New password must be different from the current password", ERROR_CODES.VALIDATION_ERROR);
+  }
+
+  const hashedPassword = await bcrypt.hash(input.newPassword, BCRYPT_ROUNDS);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    }),
+    prisma.passwordResetToken.deleteMany({ where: { userId } }),
+    prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
+
+  return { message: "Password updated successfully. Sign in again on other devices if needed." };
+}
+
+export async function requestPasswordReset(input: ForgotPasswordInput): Promise<{ message: string }> {
+  const user = await prisma.user.findUnique({ where: { email: input.email } });
+
+  if (user?.emailVerified) {
+    const token = generateOpaqueToken();
+    const tokenHash = hashToken(token);
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_MAX_AGE_MS);
+
+    await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+    await prisma.passwordResetToken.create({
+      data: { userId: user.id, tokenHash, expiresAt },
+    });
+
+    await sendPasswordResetEmail(user.email, token);
+  }
+
+  return {
+    message:
+      "If an account exists for this email, a password reset link has been sent. Check your inbox.",
+  };
+}
+
+export async function resetPasswordWithToken(input: ResetPasswordInput): Promise<{ message: string }> {
+  const tokenHash = hashToken(input.token);
+
+  const stored = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash },
+    include: { user: true },
+  });
+
+  if (!stored) {
+    throw new AppError(400, "Invalid or expired reset link", ERROR_CODES.INVALID_RESET_TOKEN);
+  }
+
+  if (stored.expiresAt < new Date()) {
+    await prisma.passwordResetToken.delete({ where: { id: stored.id } });
+    throw new AppError(410, "Reset link has expired", ERROR_CODES.RESET_TOKEN_EXPIRED);
+  }
+
+  const hashedPassword = await bcrypt.hash(input.newPassword, BCRYPT_ROUNDS);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: stored.userId },
+      data: { password: hashedPassword },
+    }),
+    prisma.passwordResetToken.deleteMany({ where: { userId: stored.userId } }),
+    prisma.refreshToken.updateMany({
+      where: { userId: stored.userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
+
+  return { message: "Password reset successfully. You can sign in with your new password." };
+}
+
 export function toAuthResponse(user: AuthUser) {
-  return { user };
+  return {
+    user,
+    session: {
+      accessTokenTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
+      refreshTokenTtlSeconds: env.REFRESH_TOKEN_TTL_SECONDS,
+    },
+  };
 }
