@@ -1,5 +1,7 @@
 import axios from "axios";
 import type { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { isUnauthorizedError } from "@/lib/api-errors";
+import { notifySessionExpired } from "@/lib/session-expired";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "/api",
@@ -17,6 +19,18 @@ function processQueue(success: boolean) {
   refreshQueue = [];
 }
 
+function isAuthBypassRefresh(url: string): boolean {
+  return (
+    url.includes("/auth/login") ||
+    url.includes("/auth/register") ||
+    url.includes("/auth/refresh") ||
+    url.includes("/auth/verify-email") ||
+    url.includes("/auth/resend-verification") ||
+    url.includes("/auth/forgot-password") ||
+    url.includes("/auth/reset-password")
+  );
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -24,14 +38,11 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const requestUrl = originalRequest?.url ?? "";
 
-    const isAuthRequest =
-      requestUrl.includes("/auth/login") ||
-      requestUrl.includes("/auth/register") ||
-      requestUrl.includes("/auth/refresh") ||
-      requestUrl.includes("/auth/verify-email") ||
-      requestUrl.includes("/auth/resend-verification");
+    if (status !== 401 || !originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
 
-    if (status !== 401 || !originalRequest || originalRequest._retry || isAuthRequest) {
+    if (isAuthBypassRefresh(requestUrl)) {
       return Promise.reject(error);
     }
 
@@ -54,8 +65,14 @@ api.interceptors.response.use(
       await api.post("/auth/refresh");
       processQueue(true);
       return api(originalRequest);
-    } catch {
+    } catch (refreshError) {
       processQueue(false);
+      if (
+        isUnauthorizedError(refreshError) &&
+        !requestUrl.includes("/auth/me")
+      ) {
+        notifySessionExpired();
+      }
       return Promise.reject(error);
     } finally {
       isRefreshing = false;

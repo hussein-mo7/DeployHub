@@ -115,10 +115,18 @@ export interface SaveEnvironmentVariablesResponse {
   redeployQueued: boolean;
 }
 
+export interface RevealEnvironmentVariableResponse {
+  variableId: string;
+  key: string;
+  value: string;
+}
+
 export interface EnvVariableDraft {
+  id?: string;
   key: string;
   value: string;
   isSecret: boolean;
+  maskedValue?: string | null;
   /** Secret exists on server; empty value field means keep unchanged */
   hasStoredSecret?: boolean;
 }

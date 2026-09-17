@@ -19,7 +19,7 @@ const statusConfig: Record<
   },
   CONNECTING: {
     label: "Connecting",
-    className: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+    className: "bg-primary/15 text-primary",
   },
   UNHEALTHY: {
     label: "Unhealthy",

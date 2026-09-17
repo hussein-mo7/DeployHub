@@ -1,8 +1,13 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
-import { Mail } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
+import {
+  AuthAlert,
+  AuthFooterLink,
+  AuthLayout,
+  AuthPageHeader,
+} from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/constants/routes";
 import * as authService from "@/services/auth.service";
 
@@ -15,7 +20,7 @@ export function VerifyEmailSentPage() {
 
   const handleResend = async () => {
     if (!email) {
-      setError("Email address is missing.");
+      setError("Email address is missing. Return to sign in and try registering again.");
       return;
     }
 
@@ -27,49 +32,50 @@ export function VerifyEmailSentPage() {
       const result = await authService.resendVerification(email);
       setMessage(result.message);
     } catch {
-      setError("Could not resend verification email. Please try again.");
+      setError("Could not resend verification email. Please try again in a moment.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Mail className="h-5 w-5" />
-          </div>
-          <CardTitle className="text-2xl">Check your email</CardTitle>
-          <CardDescription>
-            We sent a verification link{email ? ` to ${email}` : ""}. Open the link, then click
-            the verify button to activate your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {message && (
-            <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
-              {message}
-            </div>
-          )}
-          {error && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+    <AuthLayout>
+      <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Mail className="h-6 w-6" />
+      </div>
 
-          <Button variant="outline" className="w-full" onClick={() => void handleResend()} disabled={isLoading}>
-            {isLoading ? "Sending..." : "Resend verification email"}
-          </Button>
+      <AuthPageHeader
+        title="Check your inbox"
+        description={
+          email
+            ? `We sent a verification link to ${email}. Open it in this browser, then sign in.`
+            : "We sent a verification link to your email. Open it to activate your account."
+        }
+      />
 
-          <p className="text-center text-sm text-muted-foreground">
-            Already verified?{" "}
-            <Link to={ROUTES.LOGIN} className="font-medium text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+      <div className="space-y-4">
+        {message && <AuthAlert variant="success">{message}</AuthAlert>}
+        {error && <AuthAlert variant="error">{error}</AuthAlert>}
+
+        <Button
+          variant="outline"
+          className="w-full"
+          size="lg"
+          onClick={() => void handleResend()}
+          disabled={isLoading || !email}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending…
+            </>
+          ) : (
+            "Resend verification email"
+          )}
+        </Button>
+      </div>
+
+      <AuthFooterLink prompt="Already verified?" linkText="Sign in" to={ROUTES.LOGIN} />
+    </AuthLayout>
   );
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { PageContent } from "@/components/layout/PageContent";
 import { CreateServerForm } from "@/components/servers/CreateServerForm";
-import { ServerList } from "@/components/servers/ServerList";
+import { ServerList, ServerListSummary } from "@/components/servers/ServerList";
 import { ServerSetupPanel } from "@/components/servers/ServerSetupPanel";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -54,52 +55,66 @@ export function ServersPage() {
     <>
       <Header
         title="Servers"
-        description="Manage your Linux VPS servers and connected agents."
-      />
-      <div className="flex-1 space-y-6 overflow-auto p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {servers.length} server{servers.length === 1 ? "" : "s"} registered
-          </p>
-          {!showCreateForm && (
-            <Button onClick={() => setShowCreateForm(true)}>
+        description="Register Linux VPS targets and keep DeployHub agents connected."
+        actions={
+          !showCreateForm ? (
+            <Button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Add server
             </Button>
+          ) : undefined
+        }
+      />
+
+      <div className="min-h-0 flex-1 overflow-auto">
+        <PageContent>
+          {!isLoading && !isError && servers.length > 0 && (
+            <ServerListSummary servers={servers} />
           )}
-        </div>
 
-        {setupInfo && (
-          <ServerSetupPanel
-            title="Server created — connect your agent"
-            setup={setupInfo}
-          />
-        )}
+          {setupInfo && (
+            <ServerSetupPanel
+              title="Server created — install the agent"
+              setup={setupInfo}
+              onDismiss={() => setSetupInfo(null)}
+            />
+          )}
 
-        {showCreateForm && (
-          <CreateServerForm
-            onSubmit={async (values) => {
-              setCreateError(null);
-              await createMutation.mutateAsync(values);
-            }}
-            onCancel={() => {
-              setShowCreateForm(false);
-              setCreateError(null);
-            }}
-            isSubmitting={createMutation.isPending}
-            error={createError}
-          />
-        )}
+          {showCreateForm && (
+            <CreateServerForm
+              onSubmit={async (values) => {
+                setCreateError(null);
+                await createMutation.mutateAsync(values);
+              }}
+              onCancel={() => {
+                setShowCreateForm(false);
+                setCreateError(null);
+              }}
+              isSubmitting={createMutation.isPending}
+              error={createError}
+            />
+          )}
 
-        {isLoading && <p className="text-sm text-muted-foreground">Loading servers...</p>}
+          {isLoading && (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading servers…
+            </p>
+          )}
 
-        {isError && (
-          <p className="text-sm text-destructive">
-            {getApiErrorMessage(error, "Failed to load servers")}
-          </p>
-        )}
+          {isError && (
+            <p className="text-sm text-destructive">
+              {getApiErrorMessage(error, "Failed to load servers")}
+            </p>
+          )}
 
-        {!isLoading && !isError && <ServerList servers={servers} />}
+          {!isLoading && !isError && (
+            <ServerList
+              servers={servers}
+              onAddServer={!showCreateForm ? () => setShowCreateForm(true) : undefined}
+            />
+          )}
+        </PageContent>
       </div>
     </>
   );

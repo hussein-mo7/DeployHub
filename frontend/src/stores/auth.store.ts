@@ -1,10 +1,11 @@
 import { create } from "zustand";
 import * as authService from "@/services/auth.service";
 import type { User } from "@/types/auth.types";
-import type { LoginForm, RegisterForm } from "@/lib/validations/auth.schema";
+import type { LoginForm, RegisterForm, UpdateProfileForm } from "@/lib/validations/auth.schema";
 
 interface AuthState {
   user: User | null;
+  accessTokenTtlSeconds: number | null;
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
@@ -12,21 +13,36 @@ interface AuthState {
   register: (data: RegisterForm) => Promise<{ email: string }>;
   login: (data: LoginForm) => Promise<void>;
   logout: () => Promise<void>;
+  clearSession: () => void;
+  updateProfile: (data: UpdateProfileForm) => Promise<void>;
   clearError: () => void;
+}
+
+function applyAuthResponse(
+  set: (partial: Partial<AuthState>) => void,
+  response: { user: User; session: { accessTokenTtlSeconds: number } },
+  extra?: Partial<AuthState>,
+) {
+  set({
+    user: response.user,
+    accessTokenTtlSeconds: response.session.accessTokenTtlSeconds,
+    ...extra,
+  });
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  accessTokenTtlSeconds: null,
   isLoading: false,
   isInitialized: false,
   error: null,
 
   initialize: async () => {
     try {
-      const { user } = await authService.getMe();
-      set({ user, isInitialized: true });
+      const response = await authService.getMe();
+      applyAuthResponse(set, response, { isInitialized: true });
     } catch {
-      set({ user: null, isInitialized: true });
+      set({ user: null, accessTokenTtlSeconds: null, isInitialized: true });
     }
   },
 
@@ -48,8 +64,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      const { user } = await authService.login(data);
-      set({ user, isLoading: false });
+      const response = await authService.login(data);
+      applyAuthResponse(set, response, { isLoading: false });
     } catch (error) {
       set({
         isLoading: false,
@@ -60,8 +76,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    await authService.logout();
-    set({ user: null });
+    try {
+      await authService.logout();
+    } finally {
+      set({ user: null, accessTokenTtlSeconds: null });
+    }
+  },
+
+  clearSession: () => set({ user: null, accessTokenTtlSeconds: null }),
+
+  updateProfile: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await authService.updateProfile(data);
+      applyAuthResponse(set, response, { isLoading: false });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: getErrorMessage(error, "Failed to update profile"),
+      });
+      throw error;
+    }
   },
 
   clearError: () => set({ error: null }),

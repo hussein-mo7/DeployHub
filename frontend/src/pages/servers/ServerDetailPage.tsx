@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { DetailRow } from "@/components/layout/DetailRow";
 import { Header } from "@/components/layout/Header";
+import { PageContent } from "@/components/layout/PageContent";
 import { ServerSetupPanel } from "@/components/servers/ServerSetupPanel";
 import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/constants/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
-import { formatDateTime } from "@/lib/format-date";
+import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
 import { updateServerSchema } from "@/lib/validations/servers.schema";
 import * as serversService from "@/services/servers.service";
 import type { ServerSetupInfo } from "@/types/servers.types";
@@ -116,8 +118,13 @@ export function ServerDetailPage() {
   if (isLoading) {
     return (
       <>
-        <Header title="Server" description="Loading server details..." />
-        <div className="p-6 text-sm text-muted-foreground">Loading...</div>
+        <Header title="Server" description="Loading server details…" />
+        <PageContent>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading…
+          </p>
+        </PageContent>
       </>
     );
   }
@@ -125,18 +132,18 @@ export function ServerDetailPage() {
   if (isError || !server) {
     return (
       <>
-        <Header title="Server" description="Server details" />
-        <div className="space-y-4 p-6">
+        <Header
+          title="Server not found"
+          breadcrumbs={[{ label: "Servers", to: ROUTES.SERVERS }, { label: "Not found" }]}
+        />
+        <PageContent>
           <p className="text-sm text-destructive">
             {getApiErrorMessage(error, "Server not found")}
           </p>
-          <Button asChild variant="outline">
-            <Link to={ROUTES.SERVERS}>
-              <ArrowLeft className="h-4 w-4" />
-              Back to servers
-            </Link>
+          <Button variant="outline" className="mt-4" onClick={() => navigate(ROUTES.SERVERS)}>
+            Back to servers
           </Button>
-        </div>
+        </PageContent>
       </>
     );
   }
@@ -144,120 +151,147 @@ export function ServerDetailPage() {
   const isDirty =
     editForm.name !== server.name || editForm.description !== (server.description ?? "");
 
+  const showSetupHint = server.status === "UNREGISTERED" || server.status === "OFFLINE";
+
   return (
     <>
-      <Header title={server.name} description="Server details and agent connection." />
-      <div className="flex-1 space-y-6 overflow-auto p-6">
-        <Button asChild variant="ghost" className="px-0 hover:bg-transparent">
-          <Link to={ROUTES.SERVERS} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to servers
-          </Link>
-        </Button>
+      <Header
+        title={server.name}
+        description={server.description ?? "Agent connection and server settings."}
+        breadcrumbs={[
+          { label: "Servers", to: ROUTES.SERVERS },
+          { label: server.name },
+        ]}
+        actions={<ServerStatusBadge status={server.status} className="text-sm" />}
+      />
 
-        {actionError && (
-          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {actionError}
+      <div className="min-h-0 flex-1 overflow-auto">
+        <PageContent>
+          {actionError && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {actionError}
+            </div>
+          )}
+
+          {showSetupHint && !setupInfo && server.status === "UNREGISTERED" && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
+              Agent not registered yet. Regenerate a token below if your install link expired.
+            </div>
+          )}
+
+          {setupInfo && (
+            <ServerSetupPanel
+              setup={setupInfo}
+              onDismiss={() => setSetupInfo(null)}
+            />
+          )}
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base">Connection</CardTitle>
+                <CardDescription>Live agent status and timestamps.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <DetailRow label="Status">
+                  <ServerStatusBadge status={server.status} />
+                </DetailRow>
+                <DetailRow label="Last seen">
+                  {server.lastSeenAt ? (
+                    <span title={formatDateTime(server.lastSeenAt)}>
+                      {formatDistanceToNow(server.lastSeenAt)}
+                    </span>
+                  ) : (
+                    "Never"
+                  )}
+                </DetailRow>
+                <DetailRow label="Registered">
+                  {server.registeredAt ? formatDateTime(server.registeredAt) : "Not yet"}
+                </DetailRow>
+                <DetailRow label="Created">{formatDateTime(server.createdAt)}</DetailRow>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base">Details</CardTitle>
+                <CardDescription>Display name and notes for this server.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={(e) => void handleUpdate(e)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editForm.name}
+                      onChange={(e) => setForm({ ...editForm, name: e.target.value })}
+                    />
+                    {fieldErrors.name && (
+                      <p className="text-xs text-destructive">{fieldErrors.name}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Input
+                      id="edit-description"
+                      placeholder="Optional"
+                      value={editForm.description}
+                      onChange={(e) => setForm({ ...editForm, description: e.target.value })}
+                    />
+                    {fieldErrors.description && (
+                      <p className="text-xs text-destructive">{fieldErrors.description}</p>
+                    )}
+                  </div>
+
+                  <Button type="submit" disabled={!isDirty || updateMutation.isPending}>
+                    {updateMutation.isPending ? "Saving…" : "Save changes"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
-        )}
 
-        {setupInfo && <ServerSetupPanel setup={setupInfo} />}
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Current status</span>
-                <ServerStatusBadge status={server.status} />
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Registered</span>
-                <span>{server.registeredAt ? formatDateTime(server.registeredAt) : "Not yet"}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Last seen</span>
-                <span>{server.lastSeenAt ? formatDateTime(server.lastSeenAt) : "Never"}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Created</span>
-                <span>{formatDateTime(server.createdAt)}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit server</CardTitle>
-              <CardDescription>Update the display name or description.</CardDescription>
+              <CardTitle className="text-base">Agent setup</CardTitle>
+              <CardDescription>
+                Generate a new registration token if the agent was never installed or the token
+                expired.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={(e) => void handleUpdate(e)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-name">Name</Label>
-                  <Input
-                    id="edit-name"
-                    value={editForm.name}
-                    onChange={(e) =>
-                      setForm({ ...editForm, name: e.target.value })
-                    }
-                  />
-                  {fieldErrors.name && (
-                    <p className="text-xs text-destructive">{fieldErrors.name}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="edit-description">Description</Label>
-                  <Input
-                    id="edit-description"
-                    value={editForm.description}
-                    onChange={(e) =>
-                      setForm({ ...editForm, description: e.target.value })
-                    }
-                  />
-                  {fieldErrors.description && (
-                    <p className="text-xs text-destructive">{fieldErrors.description}</p>
-                  )}
-                </div>
-
-                <Button type="submit" disabled={!isDirty || updateMutation.isPending}>
-                  {updateMutation.isPending ? "Saving..." : "Save changes"}
-                </Button>
-              </form>
+              <Button
+                variant="outline"
+                disabled={regenerateMutation.isPending || Boolean(server.registeredAt)}
+                onClick={() => void regenerateMutation.mutateAsync()}
+              >
+                <RefreshCw className="h-4 w-4" />
+                {regenerateMutation.isPending ? "Generating…" : "New install token"}
+              </Button>
             </CardContent>
           </Card>
-        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Agent actions</CardTitle>
-            <CardDescription>
-              Regenerate a registration token if the agent is not connected yet.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <Button
-              variant="outline"
-              disabled={regenerateMutation.isPending || Boolean(server.registeredAt)}
-              onClick={() => void regenerateMutation.mutateAsync()}
-            >
-              <RefreshCw className="h-4 w-4" />
-              {regenerateMutation.isPending ? "Regenerating..." : "Regenerate token"}
-            </Button>
-            <Button
-              variant="outline"
-              className="border-destructive/40 text-destructive hover:bg-destructive/10"
-              disabled={deleteMutation.isPending}
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-              {deleteMutation.isPending ? "Deleting..." : "Delete server"}
-            </Button>
-          </CardContent>
-        </Card>
+          <Card className="border-destructive/20 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
+              <CardDescription>
+                Permanently delete this server. Projects targeting it will need a new environment.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                disabled={deleteMutation.isPending}
+                onClick={handleDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+                {deleteMutation.isPending ? "Deleting…" : "Delete server"}
+              </Button>
+            </CardContent>
+          </Card>
+        </PageContent>
       </div>
     </>
   );

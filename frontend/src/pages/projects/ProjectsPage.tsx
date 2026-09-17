@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { PageContent } from "@/components/layout/PageContent";
 import { CreateProjectForm } from "@/components/projects/CreateProjectForm";
 import { ProjectList } from "@/components/projects/ProjectList";
 import { Button } from "@/components/ui/button";
@@ -42,45 +43,60 @@ export function ProjectsPage() {
     <>
       <Header
         title="Projects"
-        description="Link GitHub repositories and configure services and environments."
-      />
-      <div className="flex-1 space-y-6 overflow-auto p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {projects.length} project{projects.length === 1 ? "" : "s"}
-          </p>
-          {!showCreateForm && (
-            <Button onClick={() => setShowCreateForm(true)}>
+        description="Connect GitHub repositories and define how each app deploys."
+        actions={
+          !showCreateForm ? (
+            <Button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Create project
             </Button>
+          ) : undefined
+        }
+      />
+
+      <div className="min-h-0 flex-1 overflow-auto">
+        <PageContent>
+          {!isLoading && !isError && projects.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {projects.length} project{projects.length === 1 ? "" : "s"}
+            </p>
           )}
-        </div>
 
-        {showCreateForm && (
-          <CreateProjectForm
-            onSubmit={async (values) => {
-              setCreateError(null);
-              await createMutation.mutateAsync(values);
-            }}
-            onCancel={() => {
-              setShowCreateForm(false);
-              setCreateError(null);
-            }}
-            isSubmitting={createMutation.isPending}
-            error={createError}
-          />
-        )}
+          {showCreateForm && (
+            <CreateProjectForm
+              onSubmit={async (values) => {
+                setCreateError(null);
+                await createMutation.mutateAsync(values);
+              }}
+              onCancel={() => {
+                setShowCreateForm(false);
+                setCreateError(null);
+              }}
+              isSubmitting={createMutation.isPending}
+              error={createError}
+            />
+          )}
 
-        {isLoading && <p className="text-sm text-muted-foreground">Loading projects...</p>}
+          {isLoading && (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading projects…
+            </p>
+          )}
 
-        {isError && (
-          <p className="text-sm text-destructive">
-            {getApiErrorMessage(error, "Failed to load projects")}
-          </p>
-        )}
+          {isError && (
+            <p className="text-sm text-destructive">
+              {getApiErrorMessage(error, "Failed to load projects")}
+            </p>
+          )}
 
-        {!isLoading && !isError && <ProjectList projects={projects} />}
+          {!isLoading && !isError && (
+            <ProjectList
+              projects={projects}
+              onCreateProject={!showCreateForm ? () => setShowCreateForm(true) : undefined}
+            />
+          )}
+        </PageContent>
       </div>
     </>
   );

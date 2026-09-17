@@ -4,6 +4,8 @@ export const ROUTES = {
   REGISTER: "/register",
   VERIFY_EMAIL: "/verify-email",
   VERIFY_EMAIL_SENT: "/verify-email/sent",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
   DASHBOARD: "/dashboard",
   SERVERS: "/servers",
   SERVER_DETAIL: "/servers/:id",

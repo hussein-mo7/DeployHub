@@ -22,6 +22,34 @@ export async function getMe(): Promise<AuthResponse> {
   return response.data;
 }
 
+export async function updateProfile(data: { name: string }): Promise<AuthResponse> {
+  const response = await api.patch<AuthResponse>("/auth/me", data);
+  return response.data;
+}
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}): Promise<MessageResponse> {
+  const response = await api.post<MessageResponse>("/auth/change-password", data);
+  return response.data;
+}
+
+export async function forgotPassword(email: string): Promise<MessageResponse> {
+  const response = await api.post<MessageResponse>("/auth/forgot-password", { email });
+  return response.data;
+}
+
+export async function resetPassword(data: {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}): Promise<MessageResponse> {
+  const response = await api.post<MessageResponse>("/auth/reset-password", data);
+  return response.data;
+}
+
 export async function verifyEmail(token: string): Promise<MessageResponse> {
   const response = await api.post<MessageResponse>("/auth/verify-email", { token });
   return response.data;

@@ -11,6 +11,7 @@ import type {
   ListEnvironmentVariablesResponse,
   ListProjectsResponse,
   ListServicesResponse,
+  RevealEnvironmentVariableResponse,
   SaveEnvironmentVariablesResponse,
   UpdateProjectResponse,
 } from "@/types/projects.types";
@@ -133,6 +134,29 @@ export async function saveEnvironmentVariables(
 ): Promise<SaveEnvironmentVariablesResponse> {
   const { data } = await api.put<SaveEnvironmentVariablesResponse>(
     `/projects/${projectId}/environments/${environmentId}/variables`,
+    input,
+  );
+  return data;
+}
+
+export async function revealEnvironmentVariable(
+  projectId: string,
+  environmentId: string,
+  variableId: string,
+): Promise<RevealEnvironmentVariableResponse> {
+  const { data } = await api.get<RevealEnvironmentVariableResponse>(
+    `/projects/${projectId}/environments/${environmentId}/variables/${variableId}/reveal`,
+  );
+  return data;
+}
+
+export async function updateEnvironment(
+  projectId: string,
+  environmentId: string,
+  input: { autoDeployEnabled?: boolean; branch?: string; name?: string; serverId?: string },
+): Promise<CreateEnvironmentResponse> {
+  const { data } = await api.patch<CreateEnvironmentResponse>(
+    `/projects/${projectId}/environments/${environmentId}`,
     input,
   );
   return data;

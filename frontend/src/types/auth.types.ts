@@ -6,8 +6,14 @@ export interface User {
   createdAt: string;
 }
 
+export interface AuthSessionMeta {
+  accessTokenTtlSeconds: number;
+  refreshTokenTtlSeconds: number;
+}
+
 export interface AuthResponse {
   user: User;
+  session: AuthSessionMeta;
 }
 
 export interface RegisterResponse {

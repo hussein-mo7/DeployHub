@@ -1,15 +1,16 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Boxes, ExternalLink, Loader2, Plus, Server, Trash2 } from "lucide-react";
+import { DetailRow } from "@/components/layout/DetailRow";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { Header } from "@/components/layout/Header";
-import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
+import { PageContent } from "@/components/layout/PageContent";
+import { EnvironmentSection } from "@/components/projects/EnvironmentSection";
 import { CreateEnvironmentForm } from "@/components/projects/CreateEnvironmentForm";
 import { CreateServiceForm } from "@/components/projects/CreateServiceForm";
 import { DeploymentMethodBadge } from "@/components/projects/DeploymentMethodBadge";
-import { EnvironmentDeploymentsPanel } from "@/components/projects/EnvironmentDeploymentsPanel";
 import { ServicePortEditor } from "@/components/projects/ServicePortEditor";
-import { EnvironmentVariablesPanel } from "@/components/projects/EnvironmentVariablesPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,6 @@ import { formatDateTime } from "@/lib/format-date";
 import { updateProjectSchema } from "@/lib/validations/projects.schema";
 import * as projectsService from "@/services/projects.service";
 import * as serversService from "@/services/servers.service";
-import type { ServerStatus } from "@/types/servers.types";
 
 const projectQueryKey = (id: string) => ["projects", id];
 
@@ -32,8 +32,6 @@ export function ProjectDetailPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [showEnvironmentForm, setShowEnvironmentForm] = useState(false);
-  const [expandedEnvVarsId, setExpandedEnvVarsId] = useState<string | null>(null);
-  const [expandedDeploymentsId, setExpandedDeploymentsId] = useState<string | null>(null);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [environmentError, setEnvironmentError] = useState<string | null>(null);
 
@@ -150,6 +148,22 @@ export function ProjectDetailPage() {
     },
   });
 
+  const updateEnvironmentMutation = useMutation({
+    mutationFn: ({
+      environmentId,
+      autoDeployEnabled,
+    }: {
+      environmentId: string;
+      autoDeployEnabled: boolean;
+    }) => projectsService.updateEnvironment(id, environmentId, { autoDeployEnabled }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: projectQueryKey(id) });
+    },
+    onError: (err) => {
+      setActionError(getApiErrorMessage(err, "Failed to update environment"));
+    },
+  });
+
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
     setActionError(null);
@@ -198,8 +212,13 @@ export function ProjectDetailPage() {
   if (isLoading) {
     return (
       <>
-        <Header title="Project" description="Loading project details..." />
-        <div className="p-6 text-sm text-muted-foreground">Loading...</div>
+        <Header title="Project" description="Loading project details…" />
+        <PageContent>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading…
+          </p>
+        </PageContent>
       </>
     );
   }
@@ -207,18 +226,18 @@ export function ProjectDetailPage() {
   if (isError || !project) {
     return (
       <>
-        <Header title="Project" description="Project details" />
-        <div className="space-y-4 p-6">
+        <Header
+          title="Project not found"
+          breadcrumbs={[{ label: "Projects", to: ROUTES.PROJECTS }, { label: "Not found" }]}
+        />
+        <PageContent>
           <p className="text-sm text-destructive">
             {getApiErrorMessage(error, "Project not found")}
           </p>
-          <Button asChild variant="outline">
-            <Link to={ROUTES.PROJECTS}>
-              <ArrowLeft className="h-4 w-4" />
-              Back to projects
-            </Link>
+          <Button variant="outline" className="mt-4" onClick={() => navigate(ROUTES.PROJECTS)}>
+            Back to projects
           </Button>
-        </div>
+        </PageContent>
       </>
     );
   }
@@ -231,49 +250,55 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <Header title={project.name} description={project.repoFullName} />
-      <div className="flex-1 space-y-6 overflow-auto p-6">
-        <Button asChild variant="ghost" className="px-0 hover:bg-transparent">
-          <Link to={ROUTES.PROJECTS} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to projects
-          </Link>
-        </Button>
+      <Header
+        title={project.name}
+        description={project.description ?? project.repoFullName}
+        breadcrumbs={[
+          { label: "Projects", to: ROUTES.PROJECTS },
+          { label: project.name },
+        ]}
+        actions={
+          <a
+            href={`https://github.com/${project.repoFullName}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <span className="max-w-[180px] truncate font-mono sm:max-w-none">
+              {project.repoFullName}
+            </span>
+            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          </a>
+        }
+      />
 
+      <div className="min-h-0 flex-1 overflow-auto">
+        <PageContent>
         {actionError && (
-          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {actionError}
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+        <div className="grid w-full grid-cols-1 gap-6 xl:grid-cols-2">
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Overview</CardTitle>
+              <CardTitle className="text-base">Overview</CardTitle>
+              <CardDescription>Repository and resource counts.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Repository</span>
+            <CardContent className="pt-0">
+              <DetailRow label="Repository">
                 <span className="font-mono text-xs">{project.repoFullName}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Services</span>
-                <span>{project.services.length}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Environments</span>
-                <span>{project.environments.length}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Created</span>
-                <span>{formatDateTime(project.createdAt)}</span>
-              </div>
+              </DetailRow>
+              <DetailRow label="Services">{project.services.length}</DetailRow>
+              <DetailRow label="Environments">{project.environments.length}</DetailRow>
+              <DetailRow label="Created">{formatDateTime(project.createdAt)}</DetailRow>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Edit project</CardTitle>
+              <CardTitle className="text-base">Settings</CardTitle>
               <CardDescription>Update the project name, description, or repository.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -332,11 +357,13 @@ export function ProjectDetailPage() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle>Services</CardTitle>
-              <CardDescription>How this project builds or runs on the server.</CardDescription>
+              <h2 className="text-base font-semibold text-foreground">Services</h2>
+              <p className="text-sm text-muted-foreground">
+                How this project builds or runs on the server.
+              </p>
             </div>
             {!showServiceForm && (
               <Button variant="outline" size="sm" onClick={() => setShowServiceForm(true)}>
@@ -344,79 +371,90 @@ export function ProjectDetailPage() {
                 Add service
               </Button>
             )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {showServiceForm && (
-              <CreateServiceForm
-                onSubmit={async (values) => {
-                  setServiceError(null);
-                  await createServiceMutation.mutateAsync(values);
-                }}
-                onCancel={() => {
-                  setShowServiceForm(false);
-                  setServiceError(null);
-                }}
-                isSubmitting={createServiceMutation.isPending}
-                error={serviceError}
-              />
-            )}
+          </div>
 
-            {project.services.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No services configured yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {project.services.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex flex-wrap items-start justify-between gap-3 rounded-md border p-4"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-medium">{service.name}</h4>
-                        <DeploymentMethodBadge method={service.deploymentMethod} />
-                      </div>
-                      {service.description && (
-                        <p className="text-sm text-muted-foreground">{service.description}</p>
-                      )}
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {service.deploymentMethod === "DOCKERFILE" &&
-                          `${service.dockerfilePath} · context ${service.buildContext}${
-                            service.port != null ? ` · port ${service.port}` : ""
-                          }`}
-                        {service.deploymentMethod === "COMPOSE" && service.composeFilePath}
-                        {service.deploymentMethod === "IMAGE" && service.imageName}
-                      </p>
-                      {(service.deploymentMethod === "DOCKERFILE" ||
-                        service.deploymentMethod === "IMAGE") && (
-                        <ServicePortEditor
-                          projectId={id}
-                          serviceId={service.id}
-                          serviceName={service.name}
-                          port={service.port}
-                        />
-                      )}
+          {showServiceForm && (
+            <CreateServiceForm
+              onSubmit={async (values) => {
+                setServiceError(null);
+                await createServiceMutation.mutateAsync(values);
+              }}
+              onCancel={() => {
+                setShowServiceForm(false);
+                setServiceError(null);
+              }}
+              isSubmitting={createServiceMutation.isPending}
+              error={serviceError}
+            />
+          )}
+
+          {project.services.length === 0 && !showServiceForm ? (
+            <EmptyState
+              icon={Boxes}
+              title="No services yet"
+              description="Add a Dockerfile, Compose file, or image so DeployHub knows how to run this app."
+              action={
+                <Button size="sm" onClick={() => setShowServiceForm(true)}>
+                  <Plus className="h-4 w-4" />
+                  Add service
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {project.services.map((service) => (
+                <div
+                  key={service.id}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-xl border bg-card p-4 shadow-sm"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="font-medium">{service.name}</h4>
+                      <DeploymentMethodBadge method={service.deploymentMethod} />
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      disabled={deleteServiceMutation.isPending}
-                      onClick={() => handleDeleteService(service.id, service.name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {service.description && (
+                      <p className="text-sm text-muted-foreground">{service.description}</p>
+                    )}
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {service.deploymentMethod === "DOCKERFILE" &&
+                        `${service.dockerfilePath} · context ${service.buildContext}${
+                          service.port != null ? ` · port ${service.port}` : ""
+                        }`}
+                      {service.deploymentMethod === "COMPOSE" && service.composeFilePath}
+                      {service.deploymentMethod === "IMAGE" && service.imageName}
+                    </p>
+                    {(service.deploymentMethod === "DOCKERFILE" ||
+                      service.deploymentMethod === "IMAGE") && (
+                      <ServicePortEditor
+                        projectId={id}
+                        serviceId={service.id}
+                        serviceName={service.name}
+                        port={service.port}
+                      />
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    disabled={deleteServiceMutation.isPending}
+                    onClick={() => handleDeleteService(service.id, service.name)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
-        <Card>
-          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle>Environments</CardTitle>
-              <CardDescription>Target server and branch for deployments.</CardDescription>
+              <h2 className="text-base font-semibold text-foreground">Environments</h2>
+              <p className="text-sm text-muted-foreground">
+                Target server, branch, variables, and deploy history for each environment.
+              </p>
             </div>
             {!showEnvironmentForm && (
               <Button variant="outline" size="sm" onClick={() => setShowEnvironmentForm(true)}>
@@ -424,110 +462,61 @@ export function ProjectDetailPage() {
                 Add environment
               </Button>
             )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {showEnvironmentForm && (
-              <CreateEnvironmentForm
-                servers={servers}
-                onSubmit={async (values) => {
-                  setEnvironmentError(null);
-                  await createEnvironmentMutation.mutateAsync(values);
-                }}
-                onCancel={() => {
-                  setShowEnvironmentForm(false);
-                  setEnvironmentError(null);
-                }}
-                isSubmitting={createEnvironmentMutation.isPending}
-                error={environmentError}
-              />
-            )}
+          </div>
 
-            {project.environments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No environments configured yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {project.environments.map((environment) => (
-                  <div
-                    key={environment.id}
-                    className="rounded-md border p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="font-medium">{environment.name}</h4>
-                          <ServerStatusBadge status={environment.serverStatus as ServerStatus} />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {environment.serverName} · branch {environment.branch}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Auto deploy: {environment.autoDeployEnabled ? "enabled" : "disabled"}
-                        </p>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="h-auto p-0 text-xs text-primary hover:bg-transparent"
-                          onClick={() =>
-                            setExpandedEnvVarsId((current) =>
-                              current === environment.id ? null : environment.id,
-                            )
-                          }
-                        >
-                          {expandedEnvVarsId === environment.id
-                            ? "Hide environment variables"
-                            : "Manage environment variables"}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="ml-3 h-auto p-0 text-xs text-primary hover:bg-transparent"
-                          onClick={() =>
-                            setExpandedDeploymentsId((current) =>
-                              current === environment.id ? null : environment.id,
-                            )
-                          }
-                        >
-                          {expandedDeploymentsId === environment.id
-                            ? "Hide deployments"
-                            : "Deployments & logs"}
-                        </Button>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        disabled={deleteEnvironmentMutation.isPending}
-                        onClick={() =>
-                          handleDeleteEnvironment(environment.id, environment.name)
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {expandedEnvVarsId === environment.id && (
-                      <EnvironmentVariablesPanel
-                        projectId={id}
-                        environmentId={environment.id}
-                        environmentName={environment.name}
-                      />
-                    )}
-                    {expandedDeploymentsId === environment.id && (
-                      <EnvironmentDeploymentsPanel
-                        projectId={id}
-                        environmentId={environment.id}
-                        serverStatus={environment.serverStatus as ServerStatus}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          {showEnvironmentForm && (
+            <CreateEnvironmentForm
+              servers={servers}
+              onSubmit={async (values) => {
+                setEnvironmentError(null);
+                await createEnvironmentMutation.mutateAsync(values);
+              }}
+              onCancel={() => {
+                setShowEnvironmentForm(false);
+                setEnvironmentError(null);
+              }}
+              isSubmitting={createEnvironmentMutation.isPending}
+              error={environmentError}
+            />
+          )}
 
-        <Card>
+          {project.environments.length === 0 && !showEnvironmentForm ? (
+            <EmptyState
+              icon={Server}
+              title="No environments yet"
+              description="Point this project at a server and branch, then deploy from the environment card."
+              action={
+                <Button size="sm" onClick={() => setShowEnvironmentForm(true)}>
+                  <Plus className="h-4 w-4" />
+                  Add environment
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-4">
+              {project.environments.map((environment) => (
+                <EnvironmentSection
+                  key={environment.id}
+                  projectId={id}
+                  environment={environment}
+                  isDeletePending={deleteEnvironmentMutation.isPending}
+                  isAutoDeployPending={updateEnvironmentMutation.isPending}
+                  onAutoDeployChange={(enabled) =>
+                    updateEnvironmentMutation.mutate({
+                      environmentId: environment.id,
+                      autoDeployEnabled: enabled,
+                    })
+                  }
+                  onDelete={() => handleDeleteEnvironment(environment.id, environment.name)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <Card className="w-full border-destructive/20 shadow-sm">
           <CardHeader>
-            <CardTitle>Danger zone</CardTitle>
+            <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
             <CardDescription>Permanently delete this project and all related configuration.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -538,10 +527,11 @@ export function ProjectDetailPage() {
               onClick={handleDeleteProject}
             >
               <Trash2 className="h-4 w-4" />
-              {deleteMutation.isPending ? "Deleting..." : "Delete project"}
+              {deleteMutation.isPending ? "Deleting…" : "Delete project"}
             </Button>
           </CardContent>
         </Card>
+        </PageContent>
       </div>
     </>
   );
