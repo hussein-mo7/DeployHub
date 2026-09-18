@@ -22,6 +22,10 @@ const envSchema = z.object({
   GITHUB_APP_SLUG: z.string().optional(),
   GITHUB_APP_PRIVATE_KEY: z.string().optional(),
   GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  /** Max time for a bootstrap BullMQ job (ms). Default 15 minutes. */
+  BOOTSTRAP_JOB_TIMEOUT_MS: z.coerce.number().int().min(60_000).default(900_000),
+  /** SSH ready timeout (ms). Default 30 seconds. */
+  BOOTSTRAP_SSH_READY_TIMEOUT_MS: z.coerce.number().int().min(5_000).default(30_000),
 });
 
 export type Env = z.infer<typeof envSchema>;

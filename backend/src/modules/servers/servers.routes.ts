@@ -7,10 +7,12 @@ import {
   deleteServerController,
   getServerController,
   listServersController,
+  bootstrapServerController,
   regenerateRegistrationTokenController,
   updateServerController,
 } from "./servers.controller.js";
 import {
+  bootstrapServerSchema,
   createServerSchema,
   serverIdParamsSchema,
   updateServerSchema,
@@ -34,4 +36,10 @@ serversRoutes.post(
   "/:id/regenerate-token",
   validateParams(serverIdParamsSchema),
   regenerateRegistrationTokenController,
+);
+serversRoutes.post(
+  "/:id/bootstrap",
+  validateParams(serverIdParamsSchema),
+  validateBody(bootstrapServerSchema),
+  bootstrapServerController,
 );

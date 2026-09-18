@@ -40,6 +40,9 @@ model Server {
   name                       String
   description                String?
   status                     ServerStatus @default(UNREGISTERED)
+  sshHost                    String?
+  sshPort                    Int          @default(22)
+  sshUser                    String?
   agentTokenHash             String?      @unique
   registrationTokenHash      String?      @unique
   registrationTokenExpiresAt DateTime?

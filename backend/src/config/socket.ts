@@ -38,6 +38,18 @@ export function initSocketIO(httpServer: HttpServer): Server {
       }
     });
 
+    socket.on("server:bootstrap:join", (payload: { serverId?: string }) => {
+      if (payload?.serverId) {
+        void socket.join(`server:bootstrap:${payload.serverId}`);
+      }
+    });
+
+    socket.on("server:bootstrap:leave", (payload: { serverId?: string }) => {
+      if (payload?.serverId) {
+        void socket.leave(`server:bootstrap:${payload.serverId}`);
+      }
+    });
+
     socket.on("disconnect", () => {
       logger.info(`User socket disconnected: ${socket.id}`);
     });

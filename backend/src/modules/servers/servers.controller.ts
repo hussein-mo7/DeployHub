@@ -7,6 +7,7 @@ import {
   regenerateRegistrationToken,
   updateServer,
 } from "./servers.service.js";
+import { queueServerBootstrap } from "./servers.bootstrap.service.js";
 
 export async function createServerController(
   req: Request,
@@ -81,6 +82,23 @@ export async function regenerateRegistrationTokenController(
   try {
     const result = await regenerateRegistrationToken(req.user!.userId, req.params.id as string);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function bootstrapServerController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await queueServerBootstrap(
+      req.user!.userId,
+      req.params.id as string,
+      req.body,
+    );
+    res.status(202).json(result);
   } catch (error) {
     next(error);
   }

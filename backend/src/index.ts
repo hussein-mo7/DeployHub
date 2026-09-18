@@ -7,6 +7,7 @@ import { redis } from "./config/redis.js";
 import { initSocketIO } from "./config/socket.js";
 import { startAgentCommandSubscriber } from "./config/start-agent-command-subscriber.js";
 import { startDeploymentUiSubscriber } from "./config/start-deployment-ui-subscriber.js";
+import { startBootstrapUiSubscriber } from "./config/start-bootstrap-ui-subscriber.js";
 import { logger } from "./utils/logger.js";
 
 async function bootstrap(): Promise<void> {
@@ -17,6 +18,7 @@ async function bootstrap(): Promise<void> {
   initSocketIO(httpServer);
   startAgentCommandSubscriber();
   startDeploymentUiSubscriber();
+  startBootstrapUiSubscriber();
 
   httpServer.listen(env.PORT, () => {
     logger.info(`DeployHub API running at http://localhost:${env.PORT}`);
