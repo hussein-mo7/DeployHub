@@ -1,51 +1,57 @@
-# DeployHub — Agent on VPS (interim)
-
-**Release 2.0** adds **one-time SSH bootstrap** from the UI. Until then, use this guide.
+# DeployHub — Agent on VPS
 
 **Canonical plan:** [RELEASE-2.0.md](./RELEASE-2.0.md)
 
----
-
-## How the agent gets on the VPS (no DeployHub git clone)
-
-1. **Register** — `install.sh` writes `/etc/deployhub/agent.env` (`CONTROL_PLANE_URL`, `AGENT_TOKEN`).
-2. **Run agent** — **`docker pull`** + **`docker run`** (official image from CI).  
-   Do **not** clone the DeployHub monorepo on the customer VPS.
-
-Build image locally (from repo root):
-
-```bash
-docker build -f agent/Dockerfile -t deployhub-agent:local .
-```
-
-On VPS after register (when `AGENT_DOCKER_IMAGE` is set on backend, install.sh runs this automatically):
-
-```bash
-docker run -d --name deployhub-agent --restart unless-stopped \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  --env-file /etc/deployhub/agent.env \
-  deployhub-agent:local
-```
+The agent is **not** installed by cloning this monorepo on the customer VPS. It runs from a **Docker image** (`docker pull` + `docker run`).
 
 ---
 
-## Backend env (control plane)
+## Recommended: SSH bootstrap (UI)
+
+1. **Servers** → create a server → open its detail page.
+2. **Install agent via SSH** — host, port, user, private key **or** password (one time).
+3. Watch the log panel; when the script finishes, status moves to **CONNECTING** then **ONLINE** when the agent heartbeats.
+
+Credentials are **not stored**; only host, port, and SSH username are saved for display.
+
+**Requires on control plane:**
 
 ```env
 PUBLIC_API_URL=https://api.yourdomain.com
-AGENT_DOCKER_IMAGE=ghcr.io/you/deployhub-agent:latest
+AGENT_DOCKER_IMAGE=ghcr.io/<owner>/deployhub-agent:latest
 ```
 
-Without `AGENT_DOCKER_IMAGE`, install.sh only registers and prints manual Docker commands.
+See [`GHCR-AGENT.md`](./GHCR-AGENT.md). API and **worker** must both be running.
 
 ---
 
-## Windows local dev
+## Manual fallback (SSH yourself)
 
-Use **Servers → Windows (local dev)** in the UI: PowerShell register → `agent/.env` → `npm run dev:agent`.
+1. Create server in UI → copy registration token / install command.
+2. On VPS:
+
+```bash
+curl -fsSL "$PUBLIC_API_URL/api/agents/install.sh" | bash -s -- <REGISTRATION_TOKEN>
+```
+
+With `AGENT_DOCKER_IMAGE` set, `install.sh` also pulls and runs the agent container.
 
 ---
 
-## Release 2.0 target
+## Build image locally
 
-User pastes SSH key or password **once** → worker runs [`scripts/vps-bootstrap.sh`](../scripts/vps-bootstrap.sh) → Docker agent **ONLINE** → credentials discarded.
+```powershell
+npm run docker:agent
+```
+
+---
+
+## Windows local dev (no VPS)
+
+**Servers** → use the Windows dev path: register via PowerShell → `agent/.env` → `npm run dev:agent`.
+
+---
+
+## Worker script (reference)
+
+The bootstrap worker runs [`scripts/vps-bootstrap.sh`](../scripts/vps-bootstrap.sh) over SSH (Docker + Git + `install.sh`).

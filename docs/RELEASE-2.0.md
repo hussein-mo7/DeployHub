@@ -1,6 +1,6 @@
 # Release 2.0 — DeployHub
 
-**Status:** Active development  
+**Status:** Feature complete — **browser QA pending** (see [`V2-QA-REPORT.md`](./V2-QA-REPORT.md))  
 **MVP:** Shipped (see [`PROGRESS.md`](../PROGRESS.md))  
 **This document:** Single source of truth for 2.0 scope, architecture, and build order.
 
@@ -51,14 +51,7 @@ User’s app containers (cloned from their GitHub at deploy time)
 
 **No `git clone` of DeployHub on the VPS.** The agent ships as a **pre-built image** from CI (private repo → public GHCR image).
 
-### Until SSH wizard ships (interim)
-
-Manual path on VPS:
-
-1. `curl …/install.sh | bash -s -- REGISTRATION_TOKEN` (register → `agent.env`)  
-2. `docker pull` + `docker run` using [`agent/Dockerfile`](../agent/Dockerfile) image tag from env  
-
-See [`AGENT-SETUP.md`](./AGENT-SETUP.md) for interim operator steps.
+**Manual fallback** (no SSH from UI): see [`AGENT-SETUP.md`](./AGENT-SETUP.md).
 
 ---
 
@@ -76,32 +69,35 @@ See [`AGENT-SETUP.md`](./AGENT-SETUP.md) for interim operator steps.
 
 - [x] Servers page: stat chips  
 - [x] Setup panel reads public config (Docker vs manual hints)  
-- [ ] Finish 1.1 UI sign-off (projects, deployments, settings) where still open  
+- [x] SSH bootstrap panel + create-server copy points to install flow  
+- [ ] Browser sign-off: projects, deployments, settings ([`V2-QA-REPORT.md`](./V2-QA-REPORT.md))  
 
 ### Phase 3 — One-time SSH bootstrap
 
-- [ ] Server create: SSH key **or** password (radio)  
-- [ ] `POST /servers/:id/bootstrap` → BullMQ job → `ssh2` + `vps-bootstrap.sh`  
-- [ ] Stream logs to UI (Socket.IO)  
-- [ ] Never persist credentials; store host/port/user only  
-- [ ] “Repair connection” re-run bootstrap  
+- [x] Server detail: SSH key **or** password  
+- [x] `POST /servers/:id/bootstrap` → BullMQ job → `ssh2` + `vps-bootstrap.sh`  
+- [x] Stream logs to UI (Socket.IO)  
+- [x] Never persist credentials; store host/port/user only  
+- [x] Re-run bootstrap from server page (repair / retry)  
 
 ### Phase 4 — Polish for portfolio
 
 - [x] CI workflow skeleton: [`.github/workflows/agent-docker.yml`](../.github/workflows/agent-docker.yml) → GHCR  
-- [ ] Make GHCR package **public** (or document `docker login` on VPS for private packages)  
-- [ ] Set `AGENT_DOCKER_IMAGE=ghcr.io/<owner>/deployhub-agent:latest` on control plane  
-- [ ] README demo video/script path  
-- [ ] Browser E2E checklist (replace Postman-first narrative in README)  
+- [x] GHCR setup doc (public package + private `docker login` note) — [`GHCR-AGENT.md`](./GHCR-AGENT.md)  
+- [x] Control plane env documented (`PUBLIC_API_URL`, `AGENT_DOCKER_IMAGE`)  
+- [x] Demo script — [`DEMO-SCRIPT.md`](./DEMO-SCRIPT.md)  
+- [x] Browser smoke checklist — [`BROWSER-SMOKE-CHECKLIST.md`](./BROWSER-SMOKE-CHECKLIST.md) (run after build complete)  
+- [ ] Record demo / link video in README  
 
 ---
 
 ## Security (SSH bootstrap)
 
-- HTTPS only; short job timeout  
-- No logging of keys/passwords  
-- User consent copy before connect  
-- Rate limit bootstrap per account  
+- [x] HTTPS `PUBLIC_API_URL` required in production for bootstrap  
+- [x] Job timeout + SSH ready timeout (env)  
+- [x] No logging of keys/passwords  
+- [x] User consent copy before connect  
+- [x] Rate limit bootstrap per account  
 
 ---
 
@@ -111,7 +107,8 @@ See [`AGENT-SETUP.md`](./AGENT-SETUP.md) for interim operator steps.
 |-----|---------|
 | **RELEASE-2.0.md** (this file) | Scope & phases |
 | [DESIGN.md](./DESIGN.md) | UI guidelines |
-| [AGENT-SETUP.md](./AGENT-SETUP.md) | Operator steps until SSH wizard ships |
+| [AGENT-SETUP.md](./AGENT-SETUP.md) | VPS agent (SSH + manual) |
+| [V2-QA-REPORT.md](./V2-QA-REPORT.md) | Pre-test audit & page matrix |
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | System design |
 | [ROADMAP.md](../ROADMAP.md) | Long-term product backlog |
 | [PROGRESS.md](../PROGRESS.md) | MVP history (frozen) |

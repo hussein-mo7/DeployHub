@@ -113,12 +113,26 @@ npm run db:push
 npm run dev
 ```
 
-Optional (separate terminals):
+**Required for deployments and SSH bootstrap** (separate terminal):
 
 ```powershell
 npm run worker
+```
+
+Optional — local agent without Docker on your machine:
+
+```powershell
 npm run dev:agent
 ```
+
+Release 2.0 control plane (when using a real VPS):
+
+```env
+PUBLIC_API_URL="https://api.yourdomain.com"
+AGENT_DOCKER_IMAGE="ghcr.io/<owner>/deployhub-agent:latest"
+```
+
+See [`docs/GHCR-AGENT.md`](./docs/GHCR-AGENT.md).
 
 **5. Build for production check:**
 
@@ -154,8 +168,16 @@ See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
 | Milestone | State |
 |-----------|--------|
 | **MVP** | Shipped — full deploy loop ([`PROGRESS.md`](./PROGRESS.md)) |
-| **Release 2.0** | **In progress** — Docker agent, public API URL, one-time SSH onboarding ([`docs/RELEASE-2.0.md`](./docs/RELEASE-2.0.md)) |
+| **Release 2.0** | **Feature complete — browser QA pending** ([`docs/RELEASE-2.0.md`](./docs/RELEASE-2.0.md), [`docs/V2-QA-REPORT.md`](./docs/V2-QA-REPORT.md)) |
 | **Later** | Teams, providers, notifications ([`ROADMAP.md`](./ROADMAP.md)) |
+
+---
+
+## Demo video
+
+Optional for portfolio: record using [`docs/DEMO-SCRIPT.md`](./docs/DEMO-SCRIPT.md), then add the link here:
+
+`Demo:` _(YouTube / Loom URL — not recorded yet)_
 
 ---
 
@@ -179,7 +201,10 @@ See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
 | [SRS.md](./SRS.md) | MVP requirements (frozen) |
 | [docs/DESIGN.md](./docs/DESIGN.md) | UI guidelines |
 | [docs/AGENT-SETUP.md](./docs/AGENT-SETUP.md) | Agent install on VPS |
-| [TESTING.md](./TESTING.md) | API testing reference |
+| [docs/GHCR-AGENT.md](./docs/GHCR-AGENT.md) | Publish agent image (GHCR) |
+| [docs/BROWSER-SMOKE-CHECKLIST.md](./docs/BROWSER-SMOKE-CHECKLIST.md) | Browser E2E order (after build) |
+| [docs/DEMO-SCRIPT.md](./docs/DEMO-SCRIPT.md) | Recruiter demo script |
+| [TESTING.md](./TESTING.md) | API testing reference (Postman) |
 | [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) | Git + Postman workflow |
 
 ---
