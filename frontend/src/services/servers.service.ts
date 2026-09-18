@@ -40,3 +40,16 @@ export async function regenerateRegistrationToken(id: string): Promise<CreateSer
   const { data } = await api.post<CreateServerResult>(`/servers/${id}/regenerate-token`);
   return data;
 }
+
+export interface BootstrapServerResponse {
+  message: string;
+  jobId: string;
+}
+
+export async function bootstrapServer(
+  id: string,
+  input: Record<string, unknown>,
+): Promise<BootstrapServerResponse> {
+  const { data } = await api.post<BootstrapServerResponse>(`/servers/${id}/bootstrap`, input);
+  return data;
+}

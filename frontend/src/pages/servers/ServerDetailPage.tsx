@@ -5,6 +5,7 @@ import { Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { DetailRow } from "@/components/layout/DetailRow";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
+import { ServerBootstrapPanel } from "@/components/servers/ServerBootstrapPanel";
 import { ServerSetupPanel } from "@/components/servers/ServerSetupPanel";
 import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
 import { Button } from "@/components/ui/button";
@@ -173,9 +174,29 @@ export function ServerDetailPage() {
             </div>
           )}
 
+          {server.status === "CONNECTING" && (
+            <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-foreground">
+              Agent install in progress or waiting for the agent to connect. Status refreshes
+              automatically.
+            </div>
+          )}
+
+          {server.status !== "ONLINE" && (
+            <ServerBootstrapPanel
+              serverId={server.id}
+              initialHost={server.sshHost}
+              initialPort={server.sshPort}
+              initialUser={server.sshUser}
+              onComplete={() => {
+                void queryClient.invalidateQueries({ queryKey: serverQueryKey(id) });
+                void queryClient.invalidateQueries({ queryKey: ["servers"] });
+              }}
+            />
+          )}
+
           {showSetupHint && !setupInfo && server.status === "UNREGISTERED" && (
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
-              Agent not registered yet. Regenerate a token below if your install link expired.
+              Prefer manual install? Regenerate a token below if your install link expired.
             </div>
           )}
 
@@ -208,6 +229,11 @@ export function ServerDetailPage() {
                 <DetailRow label="Registered">
                   {server.registeredAt ? formatDateTime(server.registeredAt) : "Not yet"}
                 </DetailRow>
+                {server.sshHost && (
+                  <DetailRow label="SSH target">
+                    {server.sshUser ?? "root"}@{server.sshHost}:{server.sshPort}
+                  </DetailRow>
+                )}
                 <DetailRow label="Created">{formatDateTime(server.createdAt)}</DetailRow>
               </CardContent>
             </Card>

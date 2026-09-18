@@ -47,7 +47,10 @@ export function CreateServerForm({
     <Card>
       <CardHeader>
         <CardTitle>Add server</CardTitle>
-        <CardDescription>Register a new Linux VPS or local machine as a deploy target.</CardDescription>
+        <CardDescription>
+          Register a VPS deploy target. On the next screen you can install the agent via one-time SSH
+          or use a manual install token.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">

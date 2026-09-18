@@ -13,6 +13,9 @@ export interface ServerSummary {
   name: string;
   description: string | null;
   status: ServerStatus;
+  sshHost: string | null;
+  sshPort: number;
+  sshUser: string | null;
   lastSeenAt: string | null;
   registeredAt: string | null;
   createdAt: string;
