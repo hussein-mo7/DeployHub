@@ -144,7 +144,10 @@ export function DashboardPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Get started with DeployHub</CardTitle>
                 <CardDescription>
-                  Add a server, install the agent, connect GitHub, then create your first project.
+                  Add a server → install the agent (SSH on server detail or manual token) → connect
+                  GitHub in Settings → create a project. Run{" "}
+                  <span className="font-mono text-xs">npm run worker</span> locally so deploys and
+                  bootstrap jobs execute.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">

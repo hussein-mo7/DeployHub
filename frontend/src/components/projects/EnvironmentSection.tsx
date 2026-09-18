@@ -69,6 +69,12 @@ export function EnvironmentSection({
               <span className="font-mono text-xs text-foreground">{environment.branch}</span>
             </span>
           </label>
+          {environment.autoDeployEnabled && (
+            <p className="text-xs text-muted-foreground">
+              Requires GitHub connected, push webhooks reaching your API, worker running, and an
+              online agent on this server.
+            </p>
+          )}
         </div>
         <Button
           variant="ghost"
