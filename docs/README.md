@@ -14,4 +14,5 @@
 | [../ROADMAP.md](../ROADMAP.md) | Long-term backlog |
 | [../PROGRESS.md](../PROGRESS.md) | MVP implementation history |
 | [../TESTING.md](../TESTING.md) | API testing reference |
+| [POSTMAN-RECRUITER.md](./POSTMAN-RECRUITER.md) | Postman collection + safe sharing |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Git commits + Postman sync |

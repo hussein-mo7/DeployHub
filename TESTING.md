@@ -10,8 +10,10 @@ Step-by-step API testing with Postman. Run phases in order.
 # 1. Start Docker Desktop, then:
 docker compose up redis -d
 
-# 2. Backend only (no frontend until Phase 2 Postman tests pass):
+# 2. Backend + worker (deployments, webhooks, SSH bootstrap jobs):
 npm run dev:backend
+# separate terminal:
+npm run worker
 ```
 
 | Variable | Value |
@@ -179,7 +181,16 @@ Register new email → try login **before** verify.
 | **Body** | `currentPassword`, `newPassword`, `confirmNewPassword` |
 | **Expected** | `200` — cookies cleared; login again with new password |
 
-Postman folder: **Release 2.0 — Config & Auth** · **Phase 2 — Auth** (2.10–2.12).
+### Test 2.13 Reset password (token from email)
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/auth/reset-password` |
+| **Body** | `{ "token": "{{resetToken}}", "password": "...", "confirmPassword": "..." }` |
+| **Expected** | `200` — then login with new password |
+
+Postman: **Phase 2 — Auth** (2.10–2.13) · **Release 2.0 — Config & Auth** (2.0.1–2.0.2).
 
 ---
 
@@ -194,6 +205,20 @@ Postman folder: **Release 2.0 — Config & Auth** · **Phase 2 — Auth** (2.10�
 | **Expected** | `200` — `{ "publicApiUrl", "agentDockerImage", "agentInstallMode" }` |
 
 When `AGENT_DOCKER_IMAGE` is set in `backend/.env`, `agentInstallMode` is `"docker"`.
+
+### Test 2.0.2 SSH bootstrap (optional)
+
+Postman: **Release 2.0 — Config & Auth → 2.0.2 SSH Bootstrap**
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/servers/{{serverId}}/bootstrap` |
+| **Auth** | Session cookies + `serverId` from 4.1 |
+| **Body** | `host`, `port`, `username`, `authType` (`privateKey` or `password`), `consent: true` |
+| **Expected** | `202` — `{ "message": "Bootstrap started", "jobId": "..." }` |
+
+Requires **`npm run worker`**, `AGENT_DOCKER_IMAGE`, and real VPS SSH. **Prefer the browser UI** for log streaming. Do not store production SSH keys in shared Postman environments.
 
 ---
 
@@ -341,6 +366,16 @@ Stop the agent → status should become `OFFLINE`.
 |---|---|
 | **PATCH** | `{{baseUrl}}/api/servers/{{serverId}}` — `{ "name": "Renamed VPS" }` |
 | **DELETE** | `{{baseUrl}}/api/servers/{{serverId}}` |
+
+### Test 4.6 Regenerate install token
+
+Postman: **4.6 Regenerate Install Token**
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **URL** | `{{baseUrl}}/api/servers/{{serverId}}/regenerate-token` |
+| **Expected** | `200` — new `registrationToken` (only if agent not yet registered) |
 
 **Phase 4 pass:** Create → register → list → agent ONLINE/OFFLINE works.
 
@@ -525,7 +560,17 @@ Send the same body but omit `value` for `MONGODB_URI` (or use empty string). Sec
 | **Body** | `{ "variables": [...], "redeploy": true }` |
 | **Expected** | `200` — `redeployQueued: true` (deployment worker stub logs job) |
 
-**Phase 6 pass:** Save plain + secret vars → list masks secrets → save without redeploy → save with redeploy queues job.
+### Test 6.6 Reveal secret (session required)
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables/{{variableId}}/reveal` |
+| **Expected** | `200` — `{ "value": "..." }` |
+
+Set `variableId` from the secret row `id` returned by **6.2** (or list response). Add as Postman request **6.6** if not in collection yet.
+
+**Phase 6 pass:** Save plain + secret vars → list masks secrets → reveal works → save without redeploy → save with redeploy queues job.
 
 ---
 
@@ -744,16 +789,19 @@ UI guidelines: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 
 ## Postman collection (cloud)
 
-In your Postman workspace **Hussein Mohammed's Workspace**:
+| Resource | Name | Link |
+|----------|------|------|
+| Collection | **DeployHub API** | [Postman](https://go.postman.co/collection/53428982-8d2ab912-e832-4122-bd81-ebd2a6d4248b) |
+| Environment | **DeployHub Local** | Your workspace (private) |
 
-| Resource | Name |
-|----------|------|
-| Collection | **DeployHub API** |
-| Environment | **DeployHub Local** |
+Full recruiter/share checklist: **[`docs/POSTMAN-RECRUITER.md`](docs/POSTMAN-RECRUITER.md)**.
 
-Account credentials live in **DeployHub Local** environment variables. After register, paste the token into `verificationToken`. Run **0 — Session → Login** before Phase 3+.
+Account credentials live in **DeployHub Local** — use your own `testEmail` / `testPassword`. After register, set `verificationToken`. Run **0 — Session → 0.1 Login** before Phase 3+.
 
-**Phase folders in collection:** Phase 1–10 (Phase 5 **5.5** saves `environmentId`; Phase 7 **7.1** saves `deploymentId`; Phase 8 health; Phase 9 rollback; Phase 10 webhook).
+**Folders:** `0 — Session`, Phase 1–10, **Release 2.0 — Config & Auth**.  
+**Never paste production secrets** (MongoDB, Cloudinary, Resend, etc.) into request bodies — use fake values in **6.2 Save Variables**.
+
+**Add in Postman if needed:** **6.6 Reveal Secret** — `GET .../variables/{{variableId}}/reveal` after saving vars and copying secret row `id`.
 
 ---
 
@@ -782,3 +830,5 @@ Account credentials live in **DeployHub Local** environment variables. After reg
 | Webhook 401 invalid signature | Postman pre-request must sign **exact** raw body with same secret |
 | Webhook queued 0 | Enable **10.1** auto deploy; match repo/branch/installation id in payload |
 | New secret requires value | First save of a secret key must include `value`; omit only when updating existing secret |
+| Bootstrap 503 | Set `AGENT_DOCKER_IMAGE`; run `npm run worker`; production needs HTTPS `PUBLIC_API_URL` |
+| Shared Postman leaked secrets | Rotate keys; use fake values in 6.2; see `docs/POSTMAN-RECRUITER.md` |

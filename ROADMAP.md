@@ -68,6 +68,7 @@ These are patterns that read as generic template UI, not a designed product.
 13. Notifications (email/Slack) on deploy fail  
 14. Teams, roles, audit log for secret reveal  
 15. Preview environments · blue/green  
+16. **Instance operator console** (not a copy of Coolify) — only after VPS QA. Scope: health of API/Redis/worker/queues, user list if registration stays open, stuck jobs. **Not** a browser VPS shell. See research note in chat / canvas.  
 
 ---
 
