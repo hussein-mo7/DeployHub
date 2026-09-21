@@ -13,6 +13,7 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { formatDateTime } from "@/lib/format-date";
 import { changePasswordSchema, updateProfileSchema } from "@/lib/validations/auth.schema";
 import { ROUTES } from "@/constants/routes";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import * as authService from "@/services/auth.service";
 import * as githubService from "@/services/github.service";
 import { useAuthStore } from "@/stores/auth.store";
@@ -37,6 +38,7 @@ function initials(name?: string | null, email?: string | null): string {
 }
 
 export function SettingsPage() {
+  const { confirm } = useConfirm();
   const navigate = useNavigate();
   const { user, updateProfile, logout, isLoading: profileSaving } = useAuthStore();
   const queryClient = useQueryClient();
@@ -556,13 +558,17 @@ export function SettingsPage() {
                             className="border-destructive/40 text-destructive hover:bg-destructive/10"
                             disabled={disconnectMutation.isPending}
                             onClick={() => {
-                              if (
-                                window.confirm(
-                                  "Disconnect GitHub? Deploys cannot clone until you reconnect.",
-                                )
-                              ) {
-                                disconnectMutation.mutate();
-                              }
+                              void (async () => {
+                                const confirmed = await confirm({
+                                  title: "Disconnect GitHub",
+                                  description:
+                                    "DeployHub will stop cloning this account’s repositories. Deploys cannot run until you reconnect.",
+                                  confirmLabel: "Disconnect",
+                                });
+                                if (confirmed) {
+                                  disconnectMutation.mutate();
+                                }
+                              })();
                             }}
                           >
                             {disconnectMutation.isPending ? "Disconnecting…" : "Disconnect"}

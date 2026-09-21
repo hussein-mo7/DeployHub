@@ -19,6 +19,7 @@ import { ROUTES } from "@/constants/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatDateTime } from "@/lib/format-date";
 import { updateProjectSchema } from "@/lib/validations/projects.schema";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import * as projectsService from "@/services/projects.service";
 import * as serversService from "@/services/servers.service";
 
@@ -28,6 +29,7 @@ export function ProjectDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { confirm } = useConfirm();
   const [actionError, setActionError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showServiceForm, setShowServiceForm] = useState(false);
@@ -187,23 +189,35 @@ export function ProjectDetailPage() {
     });
   };
 
-  const handleDeleteProject = () => {
+  const handleDeleteProject = async () => {
     if (!project) return;
-    const confirmed = window.confirm(`Delete "${project.name}"? This cannot be undone.`);
+    const confirmed = await confirm({
+      title: "Delete project",
+      description: `Permanently delete “${project.name}”? Services, environments, variables, and deploy history for this project will be removed. This cannot be undone.`,
+      confirmLabel: "Delete project",
+    });
     if (confirmed) {
       void deleteMutation.mutateAsync();
     }
   };
 
-  const handleDeleteService = (serviceId: string, name: string) => {
-    const confirmed = window.confirm(`Delete service "${name}"?`);
+  const handleDeleteService = async (serviceId: string, name: string) => {
+    const confirmed = await confirm({
+      title: "Delete service",
+      description: `Remove “${name}” from this project? Future deploys will no longer include this service.`,
+      confirmLabel: "Delete service",
+    });
     if (confirmed) {
       void deleteServiceMutation.mutateAsync(serviceId);
     }
   };
 
-  const handleDeleteEnvironment = (environmentId: string, name: string) => {
-    const confirmed = window.confirm(`Delete environment "${name}"?`);
+  const handleDeleteEnvironment = async (environmentId: string, name: string) => {
+    const confirmed = await confirm({
+      title: "Delete environment",
+      description: `Remove “${name}”? Variables and deploy history for this environment will be deleted. This cannot be undone.`,
+      confirmLabel: "Delete environment",
+    });
     if (confirmed) {
       void deleteEnvironmentMutation.mutateAsync(environmentId);
     }
@@ -438,7 +452,7 @@ export function ProjectDetailPage() {
                     size="sm"
                     className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     disabled={deleteServiceMutation.isPending}
-                    onClick={() => handleDeleteService(service.id, service.name)}
+                    onClick={() => void handleDeleteService(service.id, service.name)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -507,7 +521,7 @@ export function ProjectDetailPage() {
                       autoDeployEnabled: enabled,
                     })
                   }
-                  onDelete={() => handleDeleteEnvironment(environment.id, environment.name)}
+                  onDelete={() => void handleDeleteEnvironment(environment.id, environment.name)}
                 />
               ))}
             </div>
@@ -524,7 +538,7 @@ export function ProjectDetailPage() {
               variant="outline"
               className="border-destructive/40 text-destructive hover:bg-destructive/10"
               disabled={deleteMutation.isPending}
-              onClick={handleDeleteProject}
+              onClick={() => void handleDeleteProject()}
             >
               <Trash2 className="h-4 w-4" />
               {deleteMutation.isPending ? "Deleting…" : "Delete project"}

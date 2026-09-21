@@ -16,6 +16,7 @@ import { ROUTES } from "@/constants/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
 import { updateServerSchema } from "@/lib/validations/servers.schema";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import * as serversService from "@/services/servers.service";
 import type { ServerSetupInfo } from "@/types/servers.types";
 
@@ -25,6 +26,7 @@ export function ServerDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { confirm } = useConfirm();
   const [setupInfo, setSetupInfo] = useState<ServerSetupInfo | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -108,9 +110,13 @@ export function ServerDetailPage() {
     await updateMutation.mutateAsync(result.data);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!server) return;
-    const confirmed = window.confirm(`Delete "${server.name}"? This cannot be undone.`);
+    const confirmed = await confirm({
+      title: "Delete server",
+      description: `Permanently delete “${server.name}”? Projects targeting this server will need a new environment. This cannot be undone.`,
+      confirmLabel: "Delete server",
+    });
     if (confirmed) {
       void deleteMutation.mutateAsync();
     }
@@ -310,7 +316,7 @@ export function ServerDetailPage() {
                 variant="outline"
                 className="border-destructive/40 text-destructive hover:bg-destructive/10"
                 disabled={deleteMutation.isPending}
-                onClick={handleDelete}
+                onClick={() => void handleDelete()}
               >
                 <Trash2 className="h-4 w-4" />
                 {deleteMutation.isPending ? "Deleting…" : "Delete server"}
