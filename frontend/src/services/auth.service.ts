@@ -1,4 +1,5 @@
-import { api } from "./api";
+import { api, refreshAccessToken } from "./api";
+import { isUnauthorizedError } from "@/lib/api-errors";
 import type { AuthResponse, MessageResponse, RegisterResponse } from "@/types/auth.types";
 import type { LoginForm, RegisterForm } from "@/lib/validations/auth.schema";
 
@@ -20,6 +21,19 @@ export async function logout(): Promise<void> {
 export async function getMe(): Promise<AuthResponse> {
   const response = await api.get<AuthResponse>("/auth/me");
   return response.data;
+}
+
+/** Load session on app boot: refresh access cookie when expired but refresh token is valid. */
+export async function restoreSession(): Promise<AuthResponse> {
+  try {
+    return await getMe();
+  } catch (error) {
+    if (!isUnauthorizedError(error)) {
+      throw error;
+    }
+    await refreshAccessToken();
+    return await getMe();
+  }
 }
 
 export async function updateProfile(data: { name: string }): Promise<AuthResponse> {
@@ -61,5 +75,5 @@ export async function resendVerification(email: string): Promise<MessageResponse
 }
 
 export async function refreshSession(): Promise<void> {
-  await api.post("/auth/refresh");
+  await refreshAccessToken();
 }

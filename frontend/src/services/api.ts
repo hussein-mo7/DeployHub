@@ -14,6 +14,24 @@ export const api = axios.create({
 let isRefreshing = false;
 let refreshQueue: Array<(success: boolean) => void> = [];
 
+/** One refresh in flight — backend rotates refresh tokens; parallel POST /refresh causes false 401. */
+let refreshAccessPromise: Promise<void> | null = null;
+
+export function refreshAccessToken(): Promise<void> {
+  if (refreshAccessPromise) {
+    return refreshAccessPromise;
+  }
+
+  refreshAccessPromise = api
+    .post("/auth/refresh")
+    .then(() => undefined)
+    .finally(() => {
+      refreshAccessPromise = null;
+    });
+
+  return refreshAccessPromise;
+}
+
 function processQueue(success: boolean) {
   refreshQueue.forEach((callback) => callback(success));
   refreshQueue = [];
@@ -62,18 +80,24 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      await api.post("/auth/refresh");
+      await refreshAccessToken();
       processQueue(true);
       return api(originalRequest);
     } catch (refreshError) {
-      processQueue(false);
-      if (
-        isUnauthorizedError(refreshError) &&
-        !requestUrl.includes("/auth/me")
-      ) {
-        notifySessionExpired();
+      try {
+        await api.get("/auth/me");
+        processQueue(true);
+        return api(originalRequest);
+      } catch {
+        processQueue(false);
+        if (
+          isUnauthorizedError(refreshError) &&
+          !requestUrl.includes("/auth/me")
+        ) {
+          notifySessionExpired();
+        }
+        return Promise.reject(error);
       }
-      return Promise.reject(error);
     } finally {
       isRefreshing = false;
     }

@@ -4,7 +4,6 @@ import { ROUTES } from "@/constants/routes";
 import { isUnauthorizedError } from "@/lib/api-errors";
 import { setSessionExpiredHandler } from "@/lib/session-expired";
 import { getProactiveRefreshIntervalMs } from "@/lib/session-refresh-interval";
-import * as authService from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
 
 export function SessionManager({ children }: { children: React.ReactNode }) {
@@ -14,6 +13,7 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const initialize = useAuthStore((s) => s.initialize);
   const clearSession = useAuthStore((s) => s.clearSession);
+  const syncSession = useAuthStore((s) => s.syncSession);
 
   useEffect(() => {
     void initialize();
@@ -36,7 +36,7 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
     }
 
     const refresh = () => {
-      void authService.refreshSession().catch((error: unknown) => {
+      void syncSession().catch((error: unknown) => {
         if (!isUnauthorizedError(error)) {
           return;
         }
@@ -62,7 +62,7 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [user, accessTokenTtlSeconds, clearSession, navigate]);
+  }, [user, accessTokenTtlSeconds, clearSession, navigate, syncSession]);
 
   if (!isInitialized) {
     return (

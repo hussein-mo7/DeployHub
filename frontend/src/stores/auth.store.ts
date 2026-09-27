@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { isUnauthorizedError } from "@/lib/api-errors";
 import * as authService from "@/services/auth.service";
 import type { User } from "@/types/auth.types";
 import type { LoginForm, RegisterForm, UpdateProfileForm } from "@/lib/validations/auth.schema";
@@ -10,6 +11,8 @@ interface AuthState {
   isInitialized: boolean;
   error: string | null;
   initialize: () => Promise<void>;
+  /** Refresh cookies if needed and reload user from API (safe for timers / tab focus). */
+  syncSession: () => Promise<void>;
   register: (data: RegisterForm) => Promise<{ email: string }>;
   login: (data: LoginForm) => Promise<void>;
   logout: () => Promise<void>;
@@ -39,11 +42,20 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initialize: async () => {
     try {
-      const response = await authService.getMe();
+      const response = await authService.restoreSession();
       applyAuthResponse(set, response, { isInitialized: true });
-    } catch {
-      set({ user: null, accessTokenTtlSeconds: null, isInitialized: true });
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        set({ user: null, accessTokenTtlSeconds: null, isInitialized: true });
+        return;
+      }
+      set({ isInitialized: true });
     }
+  },
+
+  syncSession: async () => {
+    const response = await authService.restoreSession();
+    applyAuthResponse(set, response);
   },
 
   register: async (data) => {
