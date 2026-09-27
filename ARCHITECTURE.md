@@ -218,9 +218,9 @@ DeployHub/
 │   │   └── git/
 │   └── scripts/
 ├── docker-compose.yml
+├── docs/                  # OPERATIONS, TESTING, improvement plan, archive
 ├── SRS.md
 ├── ARCHITECTURE.md
-├── PROGRESS.md
 └── README.md
 ```
 

@@ -21,7 +21,7 @@ Collection **DeployHub API** lives in Postman cloud (not in git — see `.gitign
 After API changes:
 
 1. Add/update requests in folder **Release 2.0 — Config & Auth** or relevant phase folder.
-2. Update [`TESTING.md`](../TESTING.md) with method, URL, expected status.
+2. Update [`TESTING.md`](./TESTING.md) with method, URL, expected status.
 3. Sync environment **DeployHub Local** if new variables are needed.
 
 ## Local verify before push

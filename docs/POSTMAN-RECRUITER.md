@@ -1,6 +1,6 @@
 # Postman — testing & sharing with recruiters
 
-Collection and environment live in **Postman cloud** (not in git). Repo guide: [`TESTING.md`](../TESTING.md).
+Collection and environment live in **Postman cloud** (not in git). Repo guide: [`TESTING.md`](./TESTING.md).
 
 | Resource | Name | Link |
 |----------|------|------|

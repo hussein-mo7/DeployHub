@@ -70,7 +70,7 @@ docker ps --filter name=deployhub-agent
 # If the container is missing, run install.sh again or run docker manually with the image above.`;
   }
 
-  return `# Control plane has no AGENT_DOCKER_IMAGE — set it in backend/.env (see docs/AGENT-SETUP.md)
+  return `# Control plane has no AGENT_DOCKER_IMAGE — set it in backend/.env (see docs/OPERATIONS.md)
 
 sudo cat /etc/deployhub/agent.env
 
@@ -120,7 +120,7 @@ export function ServerSetupPanel({
           </CardDescription>
           <p className="text-xs text-muted-foreground">
             Operator guide in the repo:{" "}
-            <code className="rounded bg-muted px-1 font-mono">docs/AGENT-SETUP.md</code>
+            <code className="rounded bg-muted px-1 font-mono">docs/OPERATIONS.md</code>
           </p>
         </div>
         {onDismiss && (

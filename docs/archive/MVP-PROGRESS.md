@@ -1,13 +1,15 @@
-# DeployHub — Progress
+# DeployHub — MVP progress (archived)
 
-**Updated:** 2026-09-17 · **MVP:** complete · **Active:** [docs/RELEASE-2.0.md](./docs/RELEASE-2.0.md)
+> **Historical.** MVP is shipped. Current work: [PRODUCT-IMPROVEMENT-PLAN.md](../PRODUCT-IMPROVEMENT-PLAN.md).
+
+**Updated:** 2026-09-17 · **MVP:** complete · **Active at time of archive:** [RELEASE-2.0.md](../RELEASE-2.0.md)
 
 ---
 
 ## After MVP
 
-All new work is tracked in **[ROADMAP.md](./ROADMAP.md)** (UX audit, env secret reveal, design system, settings, 2.0 features).  
-UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
+All new work is tracked in **[ROADMAP.md](../../ROADMAP.md)** (UX audit, env secret reveal, design system, settings, 2.0 features).  
+UI rules: **[DESIGN.md](../DESIGN.md)**.
 
 ---
 
@@ -38,7 +40,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 
 - [x] Monorepo, backend, frontend, agent, Docker Redis, Neon PostgreSQL
 
-**Testing (Postman):** see `TESTING.md` → Phase 1
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 1
 
 - [x] 1.1 Health check — DB + Redis connected
 - [x] 1.2 API root — returns name + version
@@ -54,7 +56,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Backend Postman tests pass
 - [ ] Auth UI polish (Release 1.1 — see ROADMAP)
 
-**Testing (Postman):** see `TESTING.md` → Phase 2
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 2
 
 ---
 
@@ -66,7 +68,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Backend Postman tests pass
 - [x] GitHub settings UI (functional — polish in 1.1)
 
-**Testing (Postman):** see `TESTING.md` → Phase 3
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 3
 
 - [x] 3.0 Login → 3.1 Install URL → browser install → 3.3 Integration
 - [x] 3.4 List repositories
@@ -85,7 +87,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Backend Postman tests pass (agent ONLINE verified)
 - [x] Servers UI (functional — polish in 1.1)
 
-**Testing (Postman):** see `TESTING.md` → Phase 4
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 4
 
 ---
 
@@ -95,7 +97,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Postman tests pass
 - [x] Create project flow + project details UI (functional only)
 
-**Testing (Postman):** see `TESTING.md` → Phase 5
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 5
 
 ---
 
@@ -106,7 +108,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Env vars UI (functional only)
 - [ ] Secret reveal + table UX (Release 1.1 — ROADMAP P0)
 
-**Testing (Postman):** see `TESTING.md` → Phase 6
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 6
 
 ---
 
@@ -117,7 +119,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Live logs (Socket.IO + worker Redis relay) + deployment UI
 - [x] Service host port publishing for local browser access
 
-**Testing (Postman):** see `TESTING.md` → Phase 7
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 7
 
 ---
 
@@ -126,7 +128,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Service health check config + agent HTTP verify
 - [x] Postman + TESTING.md Phase 8 verified locally
 
-**Testing (Postman):** see `TESTING.md` → Phase 8
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 8
 
 ---
 
@@ -135,7 +137,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] branch + gitCommitSha + rollback API + UI
 - [x] Postman Phase 9 verified locally
 
-**Testing (Postman):** see `TESTING.md` → Phase 9
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 9
 
 ---
 
@@ -144,7 +146,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] GitHub webhook + worker + WEBHOOK deployments
 - [x] Postman 10.1 + 10.2 verified locally
 
-**Testing (Postman):** see `TESTING.md` → Phase 10
+**Testing (Postman):** see [TESTING.md](../TESTING.md) → Phase 10
 
 ---
 
@@ -153,7 +155,7 @@ UI rules: **[docs/DESIGN.md](./docs/DESIGN.md)**.
 - [x] Dashboard, Deployments, Settings (functional)
 - [x] SRS §8 scenarios validated (API and/or UI)
 
-**Testing:** see `TESTING.md` → Phase 11
+**Testing:** see [TESTING.md](../TESTING.md) → Phase 11
 
 ---
 

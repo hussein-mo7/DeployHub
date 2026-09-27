@@ -1,6 +1,6 @@
 # Browser smoke checklist (Release 2.0)
 
-Use this **after** implementation is done — walk the app in order. API details stay in [`TESTING.md`](../TESTING.md) for later Postman passes.
+Use this **after** implementation is done — walk the app in order. API details stay in [`TESTING.md`](./TESTING.md) for later Postman passes.
 
 **Prerequisites:** API + **worker** + frontend running; `AGENT_DOCKER_IMAGE` set if testing VPS SSH bootstrap.
 

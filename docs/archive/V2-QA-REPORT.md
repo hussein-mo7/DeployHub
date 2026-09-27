@@ -1,7 +1,9 @@
-# Release 2.0 — Mentor / QA report
+# Release 2.0 — Mentor / QA report (archived)
+
+> **Superseded by** [PRODUCT-IMPROVEMENT-PLAN.md](../PRODUCT-IMPROVEMENT-PLAN.md) and [BROWSER-SMOKE-CHECKLIST.md](../BROWSER-SMOKE-CHECKLIST.md). Kept for history only.
 
 **Date:** 2026-09-19  
-**Purpose:** Code & product audit before browser testing ([`BROWSER-SMOKE-CHECKLIST.md`](./BROWSER-SMOKE-CHECKLIST.md)).
+**Purpose:** Code & product audit before browser testing.
 
 ---
 

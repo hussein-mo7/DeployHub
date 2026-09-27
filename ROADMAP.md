@@ -1,6 +1,7 @@
 # DeployHub — Product Roadmap
 
-**Status:** MVP shipped · **Active development:** [docs/RELEASE-2.0.md](./docs/RELEASE-2.0.md)
+**Status:** MVP shipped · **Active development:** [docs/RELEASE-2.0.md](./docs/RELEASE-2.0.md)  
+**Current priorities (issues + order):** [docs/PRODUCT-IMPROVEMENT-PLAN.md](./docs/PRODUCT-IMPROVEMENT-PLAN.md)
 
 ---
 
@@ -92,7 +93,7 @@ These are patterns that read as generic template UI, not a designed product.
 
 ## 4. Page-by-page checklist
 
-Use this as sprint tasks; check in GitHub Issues or `PROGRESS.md` post-MVP section.
+Use this as sprint tasks; active engineering backlog: [docs/PRODUCT-IMPROVEMENT-PLAN.md](./docs/PRODUCT-IMPROVEMENT-PLAN.md).
 
 | Page | Must improve |
 |------|----------------|
@@ -113,7 +114,7 @@ Use this as sprint tasks; check in GitHub Issues or `PROGRESS.md` post-MVP secti
 **Safe to show**
 
 - `frontend/`, `backend/`, `agent/` — application code  
-- Root docs: `README.md`, `SRS.md`, `ARCHITECTURE.md`, `ROADMAP.md`, `PROGRESS.md`  
+- Root docs: `README.md`, `SRS.md`, `ARCHITECTURE.md`, `ROADMAP.md` · ops: `docs/OPERATIONS.md`  
 - `docker-compose.yml`, `.env.example` files  
 
 **Keep out of Git (already in `.gitignore`)**
@@ -138,10 +139,10 @@ Use this as sprint tasks; check in GitHub Issues or `PROGRESS.md` post-MVP secti
 | [`README.md`](./README.md) | Everyone | Install, demo, links |
 | [`SRS.md`](./SRS.md) | Product / review | MVP requirements (frozen) |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Engineers | How it works |
-| [`PROGRESS.md`](./PROGRESS.md) | You | Phase history (MVP) + link here for next |
+| [`docs/archive/MVP-PROGRESS.md`](./docs/archive/MVP-PROGRESS.md) | History | MVP phase log (archived) |
 | [`ROADMAP.md`](./ROADMAP.md) | You / contributors | 1.1 & 2.0 backlog |
 | [`docs/DESIGN.md`](./docs/DESIGN.md) | Frontend | Tokens & UI rules (fill during 1.1) |
-| [`TESTING.md`](./TESTING.md) | QA / API | Postman phases (internal depth — fine for portfolio) |
+| [`docs/TESTING.md`](./docs/TESTING.md) | QA / API | Postman phases |
 
 ---
 

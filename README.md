@@ -46,120 +46,20 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full system design.
 
 ---
 
-## Repository Structure
+## Quick start (local)
 
-```text
-DeployHub/
-├── frontend/           # React dashboard
-├── backend/            # Express API + BullMQ workers
-├── agent/              # VPS deployment agent
-├── docs/               # Design guidelines + doc index
-├── docker-compose.yml  # Local Redis (PostgreSQL via Neon)
-├── SRS.md              # MVP requirements (frozen)
-├── ROADMAP.md          # Post-MVP backlog (1.1 UX + 2.0)
-├── ARCHITECTURE.md     # System architecture
-├── PROGRESS.md         # MVP phase history
-└── TESTING.md          # Postman API testing guide
-```
+1. **Node 20+**, **Docker** (Redis), **Neon** (or Postgres) — see `.nvmrc`
+2. Copy `backend/.env.example` → `backend/.env` (`DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_KEY`, …)
+3. `npm install` · `docker compose up redis -d` · `npm run db:push`
+4. **Terminal 1:** `npm run dev` · **Terminal 2:** `npm run worker`
+5. Open http://localhost:5173 — dashboard **API Status: OK**
 
----
+**Real VPS from localhost:** set `PUBLIC_API_URL` to a tunnel or deployed API URL and `AGENT_DOCKER_IMAGE` — see [`docs/OPERATIONS.md`](./docs/OPERATIONS.md).
 
-## Prerequisites
-
-- **Node.js** 20+ (see `.nvmrc`)
-- **Docker** and Docker Compose
-- **npm** 10+
-
----
-
-## Getting Started
-
-### Prerequisites
-
-1. **Node.js 20+** — run `nvm use` if you use nvm
-2. **Docker Desktop** — for Redis only (PostgreSQL can be [Neon](https://neon.tech))
-3. **Neon account** — for PostgreSQL (`DATABASE_URL` in `backend/.env`)
-
-### Setup (Neon + Docker Redis)
-
-**1. Configure `backend/.env`:**
-
-```env
-DATABASE_URL="postgresql://..."          # from Neon dashboard
-REDIS_URL="redis://localhost:6379"     # local Docker Redis
-CLIENT_URL="http://localhost:5173"
-JWT_SECRET="your-secret"
-ENCRYPTION_KEY="your-32-char-key"
-```
-
-Neon URLs often need `?sslmode=require` at the end — use the connection string Neon gives you.
-
-**2. Install and start Redis:**
-
-```powershell
-npm install
-docker compose up redis -d
-```
-
-**3. Sync database schema to Neon:**
-
-```powershell
-npm run db:push
-```
-
-**4. Run in development:**
-
-```powershell
-npm run dev
-```
-
-**Required for deployments and SSH bootstrap** (separate terminal):
-
-```powershell
-npm run worker
-```
-
-Optional — local agent without Docker on your machine:
-
-```powershell
-npm run dev:agent
-```
-
-Release 2.0 control plane (when using a real VPS):
-
-```env
-PUBLIC_API_URL="https://api.yourdomain.com"
-AGENT_DOCKER_IMAGE="ghcr.io/<owner>/deployhub-agent:latest"
-```
-
-See [`docs/GHCR-AGENT.md`](./docs/GHCR-AGENT.md).
-
-**5. Build for production check:**
-
-```powershell
-npm run build
-```
-
-### Verify it works
-
-| Check | URL / command |
-|-------|----------------|
+| Check | URL |
+|-------|-----|
 | Frontend | http://localhost:5173 |
-| API health | http://localhost:5173 → Dashboard shows **API Status: OK** |
-| Direct health | http://localhost:3001/api/health |
-| Redis running | `docker ps` → `deployhub-redis` |
-
-When health checks pass, the stack is ready for auth and deployments. See [`PROGRESS.md`](./PROGRESS.md) for MVP phase history and [`ROADMAP.md`](./ROADMAP.md) for what comes next.
-
-### URLs (local)
-
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:3001 |
-| Health check | http://localhost:3001/api/health |
-
-See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
+| API health | http://localhost:3001/api/health |
 
 ---
 
@@ -167,63 +67,74 @@ See [`PROGRESS.md`](./PROGRESS.md) for MVP implementation history.
 
 | Milestone | State |
 |-----------|--------|
-| **MVP** | Shipped — full deploy loop ([`PROGRESS.md`](./PROGRESS.md)) |
-| **Release 2.0** | **Feature complete — browser QA pending** ([`docs/RELEASE-2.0.md`](./docs/RELEASE-2.0.md), [`docs/V2-QA-REPORT.md`](./docs/V2-QA-REPORT.md)) |
-| **Later** | Teams, providers, notifications ([`ROADMAP.md`](./ROADMAP.md)) |
+| **MVP** | Shipped — auth, GitHub, deploy loop, logs, env, rollback |
+| **Release 2.0** | SSH bootstrap + agent via Docker image — **UX/QA polish ongoing** |
+| **Next** | [`docs/PRODUCT-IMPROVEMENT-PLAN.md`](./docs/PRODUCT-IMPROVEMENT-PLAN.md) |
+
+Long-term backlog: [`ROADMAP.md`](./ROADMAP.md). Frozen MVP scope: [`SRS.md`](./SRS.md).
 
 ---
 
 ## Demo video
 
-Optional for portfolio: record using [`docs/DEMO-SCRIPT.md`](./docs/DEMO-SCRIPT.md), then add the link here:
+Optional: record with [`docs/DEMO-SCRIPT.md`](./docs/DEMO-SCRIPT.md), then add URL here:
 
-`Demo:` _(YouTube / Loom URL — not recorded yet)_
+`Demo:` _(not recorded yet)_
 
 ---
 
 ## Highlights for reviewers
 
-- **Monorepo:** React control panel, Express API, BullMQ workers, Socket.IO live logs, Prisma/Postgres, Redis queues  
-- **Agent model:** Lightweight process on each VPS executes Docker/Git deploys; outbound connection to control plane (no inbound SSH required for deploys)  
-- **2.0 direction:** One-time SSH bootstrap (credentials not stored) + agent delivered as **Docker image** — not cloning this repo onto customer servers  
-- **Docs:** [`ARCHITECTURE.md`](./ARCHITECTURE.md), [`docs/RELEASE-2.0.md`](./docs/RELEASE-2.0.md), frozen MVP scope in [`SRS.md`](./SRS.md)
+- **Monorepo:** React control panel, Express API, BullMQ workers, Socket.IO live logs, Prisma/Postgres, Redis  
+- **Agent:** Outbound WebSocket from VPS; structured deploy commands (Docker/Git), not arbitrary shell from the UI  
+- **2.0:** One-time SSH bootstrap, agent as **GHCR image** — customer VPS never clones this repo  
+- **Docs:** [`docs/README.md`](./docs/README.md) (index), [`ARCHITECTURE.md`](./ARCHITECTURE.md), [`docs/OPERATIONS.md`](./docs/OPERATIONS.md)
 
 ---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [**docs/RELEASE-2.0.md**](./docs/RELEASE-2.0.md) | Current release plan & build phases |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design |
-| [ROADMAP.md](./ROADMAP.md) | Long-term product backlog |
-| [PROGRESS.md](./PROGRESS.md) | MVP phase history |
-| [SRS.md](./SRS.md) | MVP requirements (frozen) |
-| [docs/DESIGN.md](./docs/DESIGN.md) | UI guidelines |
-| [docs/AGENT-SETUP.md](./docs/AGENT-SETUP.md) | Agent install on VPS |
-| [docs/GHCR-AGENT.md](./docs/GHCR-AGENT.md) | Publish agent image (GHCR) |
-| [docs/BROWSER-SMOKE-CHECKLIST.md](./docs/BROWSER-SMOKE-CHECKLIST.md) | Browser E2E order (after build) |
-| [docs/DEMO-SCRIPT.md](./docs/DEMO-SCRIPT.md) | Recruiter demo script |
-| [TESTING.md](./TESTING.md) | API testing reference (Postman) |
-| [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) | Git + Postman workflow |
+| Read this | Why |
+|-----------|-----|
+| [**docs/README.md**](./docs/README.md) | Full doc index |
+| [**docs/PRODUCT-IMPROVEMENT-PLAN.md**](./docs/PRODUCT-IMPROVEMENT-PLAN.md) | Current priorities (session, UX, agent buildx, …) |
+| [**docs/OPERATIONS.md**](./docs/OPERATIONS.md) | VPS, GHCR, `PUBLIC_API_URL` |
+| [**docs/RELEASE-2.0.md**](./docs/RELEASE-2.0.md) | 2.0 scope snapshot |
+| [**docs/TESTING.md**](./docs/TESTING.md) | Postman API phases |
+| [**docs/BROWSER-SMOKE-CHECKLIST.md**](./docs/BROWSER-SMOKE-CHECKLIST.md) | Browser E2E |
+| [**docs/DESIGN.md**](./docs/DESIGN.md) | UI guidelines |
+
+Root [`TESTING.md`](./TESTING.md) redirects to `docs/TESTING.md`.
 
 ---
 
-## MVP Scope
+## Repository structure
 
-The MVP delivers a complete deployment workflow: account creation, GitHub integration, server management, agent installation, project configuration, manual and automatic deployments, live logs, health checks, and rollback.
-
-Acceptance criteria: **SRS.md §8**. UI polish and UX improvements are **Release 1.1** — see **ROADMAP.md**.
+```text
+DeployHub/
+├── frontend/           # React dashboard
+├── backend/            # Express API + BullMQ workers
+├── agent/              # VPS deployment agent
+├── docs/               # Operations, testing, improvement plan
+├── docker-compose.yml  # Local Redis
+├── ARCHITECTURE.md
+├── ROADMAP.md
+└── SRS.md
+```
 
 ---
 
-## Development Principles
+## MVP scope
 
-- Clean architecture with strong separation of concerns
-- Backend-first implementation (API before UI)
-- Incremental phases — one module at a time
-- Modern UI foundation (shadcn/ui) — **professional visual design in Release 1.1**
-- No arbitrary shell execution on agents — structured commands only
+The MVP delivers account creation, GitHub integration, servers, agent install, projects, manual/auto deploy, live logs, health checks, and rollback. Acceptance: **SRS.md §8**. Visual polish: **ROADMAP.md** + improvement plan.
+
+---
+
+## Development principles
+
+- Clean architecture, backend-first phases  
+- Structured agent commands only (no arbitrary VPS shell from the product)  
+- Incremental delivery with Postman/browser verification  
 
 ---
 

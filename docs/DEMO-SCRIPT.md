@@ -7,7 +7,7 @@ For recruiters or screen recording. Adjust names/URLs to your fork.
 ## Setup (before recording)
 
 - Control plane live (or localhost with tunnel for VPS)
-- `PUBLIC_API_URL` + `AGENT_DOCKER_IMAGE` configured ([`GHCR-AGENT.md`](./GHCR-AGENT.md))
+- `PUBLIC_API_URL` + `AGENT_DOCKER_IMAGE` configured ([`OPERATIONS.md`](./OPERATIONS.md))
 - One VPS with SSH access
 - GitHub App connected to a small demo repo (Dockerfile deploy)
 

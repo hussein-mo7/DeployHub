@@ -166,7 +166,7 @@ export function ServerBootstrapPanel({
         {publicConfig && !dockerInstallReady && (
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-foreground">
             SSH bootstrap needs <code className="text-xs">AGENT_DOCKER_IMAGE</code> on the control
-            plane. Set it in backend env and restart API + worker — see docs/GHCR-AGENT.md.
+            plane. Set it in backend env and restart API + worker — see docs/OPERATIONS.md.
           </div>
         )}
 

@@ -102,7 +102,7 @@ else
   echo "  docker run -d --name deployhub-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock --env-file /etc/deployhub/agent.env ${agentImage}"
 fi`
       : `
-echo "Set AGENT_DOCKER_IMAGE on the control plane for automatic docker run, or see docs/AGENT-SETUP.md"`;
+echo "Set AGENT_DOCKER_IMAGE on the control plane for automatic docker run, or see docs/OPERATIONS.md"`;
 
   return `#!/usr/bin/env bash
 set -euo pipefail
