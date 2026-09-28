@@ -14,5 +14,11 @@ ENV NODE_ENV=production
 COPY agent/package.json ./
 RUN npm install --omit=dev
 COPY --from=build /app/agent/dist ./dist
-RUN apk add --no-cache docker-cli git
+ARG BUILDX_VERSION=0.24.0
+RUN apk add --no-cache docker-cli git curl && \
+    mkdir -p /usr/local/lib/docker/cli-plugins && \
+    curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-buildx \
+      "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64" && \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+ENV DOCKER_BUILDKIT=1
 CMD ["node", "dist/index.js"]

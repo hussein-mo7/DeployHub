@@ -13,6 +13,8 @@ export const ROUTES = {
   PROJECT_DETAIL: "/projects/:id",
   DEPLOYMENTS: "/deployments",
   SETTINGS: "/settings",
+  SETTINGS_PROFILE: "/settings/profile",
+  SETTINGS_INTEGRATIONS: "/settings/integrations",
   SETTINGS_GITHUB: "/settings/github",
 } as const;
 

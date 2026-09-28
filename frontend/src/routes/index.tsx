@@ -38,10 +38,12 @@ export function AppRoutes() {
           <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
           <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectDetailPage />} />
           <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
-          <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+          <Route path={ROUTES.SETTINGS} element={<Navigate to={ROUTES.SETTINGS_PROFILE} replace />} />
+          <Route path={ROUTES.SETTINGS_PROFILE} element={<SettingsPage />} />
+          <Route path={ROUTES.SETTINGS_INTEGRATIONS} element={<SettingsPage />} />
           <Route
             path={ROUTES.SETTINGS_GITHUB}
-            element={<Navigate to={`${ROUTES.SETTINGS}?github=connected`} replace />}
+            element={<Navigate to={`${ROUTES.SETTINGS_INTEGRATIONS}?github=connected`} replace />}
           />
         </Route>
       </Route>

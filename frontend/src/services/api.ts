@@ -3,6 +3,12 @@ import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { isUnauthorizedError } from "@/lib/api-errors";
 import { notifySessionExpired } from "@/lib/session-expired";
 
+export type ApiRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  /** If true, 401 is returned immediately (used by restoreSession to avoid interceptor deadlock). */
+  skipSessionRefresh?: boolean;
+};
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "/api",
   withCredentials: true,
@@ -52,7 +58,7 @@ function isAuthBypassRefresh(url: string): boolean {
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as ApiRequestConfig | undefined;
     const status = error.response?.status;
     const requestUrl = originalRequest?.url ?? "";
 
@@ -60,7 +66,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (isAuthBypassRefresh(requestUrl)) {
+    if (originalRequest.skipSessionRefresh || isAuthBypassRefresh(requestUrl)) {
       return Promise.reject(error);
     }
 
@@ -84,20 +90,14 @@ api.interceptors.response.use(
       processQueue(true);
       return api(originalRequest);
     } catch (refreshError) {
-      try {
-        await api.get("/auth/me");
-        processQueue(true);
-        return api(originalRequest);
-      } catch {
-        processQueue(false);
-        if (
-          isUnauthorizedError(refreshError) &&
-          !requestUrl.includes("/auth/me")
-        ) {
-          notifySessionExpired();
-        }
-        return Promise.reject(error);
+      processQueue(false);
+      if (
+        isUnauthorizedError(refreshError) &&
+        !requestUrl.includes("/auth/me")
+      ) {
+        notifySessionExpired();
       }
+      return Promise.reject(error);
     } finally {
       isRefreshing = false;
     }

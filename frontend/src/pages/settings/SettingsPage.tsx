@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Github, Loader2, User } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
@@ -28,6 +28,10 @@ const navItems: { id: SettingsSection; label: string; icon: typeof User }[] = [
   { id: "integrations", label: "Integrations", icon: Github },
 ];
 
+function sectionFromPath(pathname: string): SettingsSection {
+  return pathname.startsWith(ROUTES.SETTINGS_INTEGRATIONS) ? "integrations" : "profile";
+}
+
 function initials(name?: string | null, email?: string | null): string {
   const source = name?.trim() || email?.trim() || "?";
   const parts = source.split(/\s+/).filter(Boolean);
@@ -40,10 +44,11 @@ function initials(name?: string | null, email?: string | null): string {
 export function SettingsPage() {
   const { confirm } = useConfirm();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, updateProfile, logout, isLoading: profileSaving } = useAuthStore();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [section, setSection] = useState<SettingsSection>("profile");
+  const section = sectionFromPath(location.pathname);
   const [banner, setBanner] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -70,12 +75,14 @@ export function SettingsPage() {
   useEffect(() => {
     if (searchParams.get("github") === "connected") {
       setBanner("GitHub connected successfully.");
-      setSection("integrations");
+      if (section !== "integrations") {
+        navigate(ROUTES.SETTINGS_INTEGRATIONS, { replace: true });
+      }
       searchParams.delete("github");
       setSearchParams(searchParams, { replace: true });
       void queryClient.invalidateQueries({ queryKey: integrationQueryKey });
     }
-  }, [queryClient, searchParams, setSearchParams]);
+  }, [navigate, queryClient, searchParams, section, setSearchParams]);
 
   const profileDirty = nameField.trim() !== (user?.name ?? "").trim();
 
@@ -206,7 +213,13 @@ export function SettingsPage() {
                         <li key={item.id} className="shrink-0 lg:shrink">
                           <button
                             type="button"
-                            onClick={() => setSection(item.id)}
+                            onClick={() =>
+                              navigate(
+                                item.id === "integrations"
+                                  ? ROUTES.SETTINGS_INTEGRATIONS
+                                  : ROUTES.SETTINGS_PROFILE,
+                              )
+                            }
                             className={cn(
                               "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors lg:px-3",
                               active

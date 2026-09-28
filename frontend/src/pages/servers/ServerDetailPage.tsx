@@ -114,7 +114,7 @@ export function ServerDetailPage() {
     if (!server) return;
     const confirmed = await confirm({
       title: "Delete server",
-      description: `Permanently delete “${server.name}”? Projects targeting this server will need a new environment. This cannot be undone.`,
+      description: `Remove “${server.name}” from DeployHub? The agent, containers, and files on the VPS are not deleted. Projects using this server will need another environment.`,
       confirmLabel: "Delete server",
     });
     if (confirmed) {

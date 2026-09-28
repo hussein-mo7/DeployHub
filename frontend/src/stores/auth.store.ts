@@ -43,12 +43,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialize: async () => {
     try {
       const response = await authService.restoreSession();
-      applyAuthResponse(set, response, { isInitialized: true });
+      applyAuthResponse(set, response);
     } catch (error) {
       if (isUnauthorizedError(error)) {
-        set({ user: null, accessTokenTtlSeconds: null, isInitialized: true });
-        return;
+        set({ user: null, accessTokenTtlSeconds: null });
+        try {
+          await authService.logout();
+        } catch {
+          /* clear httpOnly cookies when refresh token is invalid */
+        }
       }
+    } finally {
       set({ isInitialized: true });
     }
   },

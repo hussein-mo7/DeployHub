@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Server,
@@ -18,7 +18,7 @@ export const mainNavItems = [
   { to: ROUTES.SERVERS, label: "Servers", icon: Server },
   { to: ROUTES.PROJECTS, label: "Projects", icon: FolderKanban },
   { to: ROUTES.DEPLOYMENTS, label: "Deployments", icon: Rocket },
-  { to: ROUTES.SETTINGS, label: "Settings", icon: Settings },
+  { to: ROUTES.SETTINGS_PROFILE, label: "Settings", icon: Settings },
 ] as const;
 
 interface SidebarNavProps {
@@ -34,6 +34,7 @@ export function SidebarNav({
 }: SidebarNavProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const initials = userInitials(user?.name, user?.email);
 
   const handleLogout = async () => {
@@ -50,25 +51,34 @@ export function SidebarNav({
             Platform
           </p>
         )}
-        {mainNavItems.map(({ to, label, icon: Icon }) => (
+        {mainNavItems.map(({ to, label, icon: Icon }) => {
+          const settingsSection = to === ROUTES.SETTINGS_PROFILE;
+          const isActive =
+            settingsSection
+              ? location.pathname.startsWith("/settings")
+              : undefined;
+
+          return (
           <NavLink
             key={to}
             to={to}
             title={collapsed ? label : undefined}
             onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
+            className={({ isActive: linkActive }) =>
               cn(
                 "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
+                (settingsSection ? isActive : linkActive)
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
                 collapsed && "justify-center px-2",
               )
             }
           >
-            {({ isActive }) => (
+            {({ isActive: linkActive }) => {
+              const active = settingsSection ? Boolean(isActive) : linkActive;
+              return (
               <>
-                {isActive && (
+                {active && (
                   <span
                     className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"
                     aria-hidden
@@ -77,14 +87,16 @@ export function SidebarNav({
                 <Icon
                   className={cn(
                     "h-[18px] w-[18px] shrink-0",
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                    active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                   )}
                 />
                 {!collapsed && <span>{label}</span>}
               </>
-            )}
+            );
+            }}
           </NavLink>
-        ))}
+          );
+        })}
       </nav>
 
       <div className="border-t border-border p-3">

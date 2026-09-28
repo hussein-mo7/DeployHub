@@ -158,7 +158,7 @@ export function DashboardPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to={ROUTES.SETTINGS}>Connect GitHub</Link>
+                  <Link to={ROUTES.SETTINGS_INTEGRATIONS}>Connect GitHub</Link>
                 </Button>
               </CardContent>
             </Card>

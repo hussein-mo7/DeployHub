@@ -1,4 +1,4 @@
-import { api, refreshAccessToken } from "./api";
+import { api, refreshAccessToken, type ApiRequestConfig } from "./api";
 import { isUnauthorizedError } from "@/lib/api-errors";
 import type { AuthResponse, MessageResponse, RegisterResponse } from "@/types/auth.types";
 import type { LoginForm, RegisterForm } from "@/lib/validations/auth.schema";
@@ -23,16 +23,23 @@ export async function getMe(): Promise<AuthResponse> {
   return response.data;
 }
 
-/** Load session on app boot: refresh access cookie when expired but refresh token is valid. */
+async function getMeDirect(): Promise<AuthResponse> {
+  const response = await api.get<AuthResponse>("/auth/me", {
+    skipSessionRefresh: true,
+  } as ApiRequestConfig);
+  return response.data;
+}
+
+/** Load session on app boot: one refresh attempt, no interceptor deadlock. */
 export async function restoreSession(): Promise<AuthResponse> {
   try {
-    return await getMe();
+    return await getMeDirect();
   } catch (error) {
     if (!isUnauthorizedError(error)) {
       throw error;
     }
     await refreshAccessToken();
-    return await getMe();
+    return await getMeDirect();
   }
 }
 
