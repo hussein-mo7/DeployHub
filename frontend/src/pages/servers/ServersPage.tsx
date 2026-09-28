@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { ListLoadingSkeleton } from "@/components/ui/loading-state";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
 import { CreateServerForm } from "@/components/servers/CreateServerForm";
@@ -95,12 +96,7 @@ export function ServersPage() {
             />
           )}
 
-          {isLoading && (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading servers…
-            </p>
-          )}
+          {isLoading && <ListLoadingSkeleton rows={3} />}
 
           {isError && (
             <p className="text-sm text-destructive">

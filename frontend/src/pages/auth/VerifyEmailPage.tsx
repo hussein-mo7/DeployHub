@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
+import { SectionLoadingState } from "@/components/ui/loading-state";
 import {
   AuthAlert,
   AuthLayout,
@@ -67,10 +68,7 @@ export function VerifyEmailPage() {
       />
 
       {isLoading && !success && !error && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Verifying your email…
-        </div>
+        <SectionLoadingState label="Verifying your email…" className="border-none bg-transparent px-0" />
       )}
 
       {error && <AuthAlert variant="error">{error}</AuthAlert>}

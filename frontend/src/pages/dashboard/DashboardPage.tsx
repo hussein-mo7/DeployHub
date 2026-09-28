@@ -15,6 +15,7 @@ import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InlineListLoadingSkeleton } from "@/components/ui/loading-state";
 import { projectDetailPath, ROUTES } from "@/constants/routes";
 import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
 import { checkHealth } from "@/services/api";
@@ -228,9 +229,7 @@ export function DashboardPage() {
               )}
             </CardHeader>
             <CardContent>
-              {deploymentsLoading && (
-                <p className="text-sm text-muted-foreground">Loading activity…</p>
-              )}
+              {deploymentsLoading && <InlineListLoadingSkeleton rows={3} />}
               {!deploymentsLoading && recentRows.length === 0 && (
                 <EmptyState
                   icon={Rocket}

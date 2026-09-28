@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { ButtonSpinner } from "@/components/ui/loading-state";
 import {
   AuthAlert,
   AuthFooterLink,
@@ -116,7 +116,7 @@ export function RegisterPage() {
         <Button type="submit" className="mt-2 w-full" size="lg" disabled={isLoading}>
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <ButtonSpinner className="mr-2" />
               Creating account…
             </>
           ) : (

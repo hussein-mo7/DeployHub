@@ -6,11 +6,7 @@ export function ProtectedRoute() {
   const { user, isInitialized } = useAuthStore();
 
   if (!isInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return null;
   }
 
   if (!user) {
@@ -24,11 +20,7 @@ export function PublicRoute() {
   const { user, isInitialized } = useAuthStore();
 
   if (!isInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return null;
   }
 
   if (user) {

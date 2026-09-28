@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Loader2 } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-state";
 import { useLogContainerScroll } from "@/hooks/useLogContainerScroll";
 import { cn } from "@/lib/utils";
 
@@ -36,10 +36,10 @@ export function LogViewer({
       )}
     >
       {isLoading && logs.length === 0 ? (
-        <p className="flex items-center gap-2 text-zinc-400">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Loading logs…
-        </p>
+        <div className="flex items-center gap-3 text-zinc-400">
+          <LoadingSpinner size="sm" className="border-zinc-600 border-t-zinc-300" />
+          <span>Connecting to log stream…</span>
+        </div>
       ) : logs.length === 0 ? (
         <p className="text-zinc-500">{emptyMessage}</p>
       ) : (

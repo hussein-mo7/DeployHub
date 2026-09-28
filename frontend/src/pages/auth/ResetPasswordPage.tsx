@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, type FormEvent } from "react";
-import { KeyRound, Loader2 } from "lucide-react";
+import { KeyRound } from "lucide-react";
+import { ButtonSpinner } from "@/components/ui/loading-state";
 import {
   AuthAlert,
   AuthLayout,
@@ -115,7 +116,7 @@ export function ResetPasswordPage() {
           <Button type="submit" className="w-full" size="lg" disabled={isSubmitting || !token}>
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ButtonSpinner className="mr-2" />
                 Updating…
               </>
             ) : (

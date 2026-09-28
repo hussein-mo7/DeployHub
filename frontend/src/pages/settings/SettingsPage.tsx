@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Github, Loader2, User } from "lucide-react";
+import { Github, User } from "lucide-react";
+import { ButtonSpinner, SectionLoadingState } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
@@ -334,7 +335,7 @@ export function SettingsPage() {
                         <Button type="submit" size="sm" disabled={!profileDirty || profileSaving}>
                           {profileSaving ? (
                             <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <ButtonSpinner className="mr-2" />
                               Saving…
                             </>
                           ) : (
@@ -451,7 +452,7 @@ export function SettingsPage() {
                           >
                             {passwordSaving ? (
                               <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <ButtonSpinner className="mr-2" />
                                 Updating…
                               </>
                             ) : (
@@ -491,10 +492,7 @@ export function SettingsPage() {
                     </div>
 
                     {integrationLoading && (
-                      <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Loading integration…
-                      </p>
+                      <SectionLoadingState label="Loading GitHub integration…" />
                     )}
                     {integrationError && (
                       <p className="text-sm text-destructive">Could not load GitHub status.</p>
@@ -512,7 +510,7 @@ export function SettingsPage() {
                           >
                             {connectMutation.isPending ? (
                               <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <ButtonSpinner className="mr-2" />
                                 Redirecting…
                               </>
                             ) : (
@@ -548,7 +546,7 @@ export function SettingsPage() {
                         <div>
                           <p className="mb-2 text-sm font-medium">Repository access (sample)</p>
                           {reposLoading && (
-                            <p className="text-sm text-muted-foreground">Loading repositories…</p>
+                            <SectionLoadingState label="Loading repositories…" className="py-4" />
                           )}
                           {!reposLoading && reposData?.repositories.length === 0 && (
                             <p className="text-sm text-muted-foreground">

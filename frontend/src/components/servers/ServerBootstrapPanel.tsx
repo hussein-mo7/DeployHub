@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
+import { ButtonSpinner } from "@/components/ui/loading-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -296,7 +297,7 @@ export function ServerBootstrapPanel({
           <Button type="submit" disabled={formDisabled}>
             {running ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <ButtonSpinner className="mr-2" />
                 Installing…
               </>
             ) : (

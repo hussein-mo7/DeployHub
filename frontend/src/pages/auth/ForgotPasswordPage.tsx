@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, type FormEvent } from "react";
-import { Loader2, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
+import { ButtonSpinner } from "@/components/ui/loading-state";
 import {
   AuthAlert,
   AuthFooterLink,
@@ -83,7 +84,7 @@ export function ForgotPasswordPage() {
           <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ButtonSpinner className="mr-2" />
                 Sending…
               </>
             ) : (

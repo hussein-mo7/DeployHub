@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TableLoadingSkeleton } from "@/components/ui/loading-state";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { saveEnvironmentVariablesSchema } from "@/lib/validations/projects.schema";
@@ -232,7 +233,7 @@ export function EnvironmentVariablesPanel({
         )}
       </div>
 
-      {isLoading && <p className="text-sm text-muted-foreground">Loading variables…</p>}
+      {isLoading && <TableLoadingSkeleton rows={3} />}
 
       {isError && (
         <p className="text-sm text-destructive">

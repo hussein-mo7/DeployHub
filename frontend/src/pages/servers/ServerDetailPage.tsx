@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { DetailRow } from "@/components/layout/DetailRow";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
@@ -127,10 +128,7 @@ export function ServerDetailPage() {
       <>
         <Header title="Server" description="Loading server details…" />
         <PageContent>
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading…
-          </p>
+          <PageLoadingState label="Loading server" description="Fetching agent status and settings…" />
         </PageContent>
       </>
     );

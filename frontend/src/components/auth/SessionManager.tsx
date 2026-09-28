@@ -4,6 +4,7 @@ import { ROUTES } from "@/constants/routes";
 import { isUnauthorizedError } from "@/lib/api-errors";
 import { setSessionExpiredHandler } from "@/lib/session-expired";
 import { getProactiveRefreshIntervalMs } from "@/lib/session-refresh-interval";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { toastError } from "@/lib/toast";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -63,9 +64,11 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
 
   if (!isInitialized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      </div>
+      <PageLoadingState
+        fullScreen
+        label="Starting DeployHub"
+        description="Checking your session…"
+      />
     );
   }
 

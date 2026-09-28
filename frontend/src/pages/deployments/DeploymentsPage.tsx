@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, Loader2, Rocket, Search } from "lucide-react";
+import { ExternalLink, Rocket, Search } from "lucide-react";
+import { ListLoadingSkeleton } from "@/components/ui/loading-state";
 import { DeploymentStatusBadge } from "@/components/deployments/DeploymentStatusBadge";
 import { LogViewer } from "@/components/deployments/LogViewer";
 import { EmptyState } from "@/components/layout/EmptyState";
@@ -248,12 +249,7 @@ export function DeploymentsPage() {
             </CardHeader>
 
             <CardContent>
-              {isLoading && (
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading deployments…
-                </p>
-              )}
+              {isLoading && <ListLoadingSkeleton rows={5} />}
               {isError && (
                 <p className="text-sm text-destructive">Failed to load deployments.</p>
               )}

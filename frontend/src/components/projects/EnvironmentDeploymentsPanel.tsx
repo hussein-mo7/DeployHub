@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Rocket, RotateCcw, Square } from "lucide-react";
+import { Rocket, RotateCcw, Square } from "lucide-react";
+import { ButtonSpinner, InlineListLoadingSkeleton } from "@/components/ui/loading-state";
 import { DeploymentStatusBadge } from "@/components/deployments/DeploymentStatusBadge";
 import { LogViewer } from "@/components/deployments/LogViewer";
 import { Button } from "@/components/ui/button";
@@ -183,7 +184,7 @@ export function EnvironmentDeploymentsPanel({
               onClick={() => rollbackMutation.mutate()}
             >
               {rollbackMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <ButtonSpinner className="mr-2" />
               ) : (
                 <RotateCcw className="h-4 w-4" />
               )}
@@ -197,7 +198,7 @@ export function EnvironmentDeploymentsPanel({
             onClick={() => deployMutation.mutate()}
           >
             {deployMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <ButtonSpinner className="mr-2" />
             ) : (
               <Rocket className="h-4 w-4" />
             )}
@@ -215,7 +216,7 @@ export function EnvironmentDeploymentsPanel({
       {actionError && <p className="text-sm text-destructive">{actionError}</p>}
 
       {listLoading ? (
-        <p className="text-sm text-muted-foreground">Loading deployment history…</p>
+        <InlineListLoadingSkeleton rows={2} />
       ) : deployments.length === 0 ? (
         <p className="rounded-md border border-dashed bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
           No deployments yet. Use Deploy now to start the first run.
