@@ -1,3 +1,4 @@
+import axios from "axios";
 import { toast as sonnerToast } from "sonner";
 import { getApiErrorMessage } from "@/lib/api-error";
 
@@ -12,5 +13,9 @@ export function toastError(message: string): void {
 }
 
 export function toastApiError(error: unknown, fallback: string): void {
-  sonnerToast.error(getApiErrorMessage(error, fallback));
+  let message = getApiErrorMessage(error, fallback);
+  if (axios.isAxiosError(error) && error.response?.status === 503) {
+    message = `${message} Start the worker (npm run worker) if deploys or SSH install stay pending.`;
+  }
+  sonnerToast.error(message);
 }

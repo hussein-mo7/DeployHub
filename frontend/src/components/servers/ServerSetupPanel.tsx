@@ -108,7 +108,7 @@ export function ServerSetupPanel({
     : "Registers and writes /etc/deployhub/agent.env. Set AGENT_DOCKER_IMAGE on the API for automatic docker run.";
 
   return (
-    <Card className="border-primary/25 bg-primary/5 shadow-sm">
+    <Card className="border-primary/25 bg-primary/5">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="space-y-2">
           <CardTitle className="text-base">{title}</CardTitle>

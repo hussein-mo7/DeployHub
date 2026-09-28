@@ -1,3 +1,5 @@
+import { BRAND_NAME, BRAND_TAGLINE } from "@/constants/brand";
+import { LogoMark } from "@/components/layout/LogoMark";
 import { cn } from "@/lib/utils";
 
 interface AppBrandProps {
@@ -5,20 +7,14 @@ interface AppBrandProps {
   className?: string;
 }
 
-/** Placeholder mark until custom logo (Release 1.1+). */
 export function AppBrand({ collapsed, className }: AppBrandProps) {
   return (
-    <div className={cn("flex items-center gap-2.5 min-w-0", className)}>
-      <div
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm"
-        aria-hidden
-      >
-        D
-      </div>
+    <div className={cn("flex min-w-0 items-center gap-1", className)}>
+      <LogoMark />
       {!collapsed && (
         <div className="min-w-0 truncate">
-          <p className="truncate text-sm font-semibold tracking-tight text-foreground">DeployHub</p>
-          <p className="truncate text-[11px] text-muted-foreground">Control plane</p>
+          <p className="truncate text-sm font-semibold tracking-tight text-foreground">{BRAND_NAME}</p>
+          <p className="truncate text-[11px] text-muted-foreground">{BRAND_TAGLINE}</p>
         </div>
       )}
     </div>

@@ -46,6 +46,17 @@ function loadEnv(): Env {
     process.exit(1);
   }
 
+  if (data.NODE_ENV === "production") {
+    if (!data.PUBLIC_API_URL) {
+      console.error("Invalid environment variables: PUBLIC_API_URL is required when NODE_ENV=production");
+      process.exit(1);
+    }
+    if (!data.PUBLIC_API_URL.startsWith("https://")) {
+      console.error("Invalid environment variables: PUBLIC_API_URL must use https:// in production");
+      process.exit(1);
+    }
+  }
+
   return data;
 }
 

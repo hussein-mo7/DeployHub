@@ -10,7 +10,15 @@ import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
 import { VerifyEmailSentPage } from "@/pages/auth/VerifyEmailSentPage";
 import { DeploymentsPage } from "@/pages/deployments/DeploymentsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
-import { ProjectDetailPage } from "@/pages/projects/ProjectDetailPage";
+import { NewProjectPage } from "@/pages/projects/NewProjectPage";
+import { ProjectDeploymentsPage } from "@/pages/projects/ProjectDeploymentsPage";
+import { ProjectLayout } from "@/pages/projects/ProjectLayout";
+import { ProjectNewEnvironmentPage } from "@/pages/projects/ProjectNewEnvironmentPage";
+import { ProjectNewServicePage } from "@/pages/projects/ProjectNewServicePage";
+import { ProjectOverviewPage } from "@/pages/projects/ProjectOverviewPage";
+import { ProjectServicesPage } from "@/pages/projects/ProjectServicesPage";
+import { ProjectSettingsPage } from "@/pages/projects/ProjectSettingsPage";
+import { ProjectVariablesPage } from "@/pages/projects/ProjectVariablesPage";
 import { ProjectsPage } from "@/pages/projects/ProjectsPage";
 import { NewServerPage } from "@/pages/servers/NewServerPage";
 import { ServerDetailPage } from "@/pages/servers/ServerDetailPage";
@@ -40,7 +48,18 @@ export function AppRoutes() {
           <Route path={ROUTES.SERVER_SETUP} element={<ServerSetupPage />} />
           <Route path={ROUTES.SERVER_DETAIL} element={<ServerDetailPage />} />
           <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
-          <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectDetailPage />} />
+          <Route path={ROUTES.PROJECT_NEW} element={<NewProjectPage />} />
+          <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectLayout />}>
+            <Route index element={<ProjectOverviewPage />} />
+            <Route path="deployments" element={<ProjectDeploymentsPage />} />
+            <Route path="variables" element={<ProjectVariablesPage />} />
+            <Route path="services" element={<ProjectServicesPage />} />
+            <Route path="services/new" element={<ProjectNewServicePage />} />
+            <Route path="environments" element={<Navigate to=".." replace />} />
+            <Route path="environments/new" element={<ProjectNewEnvironmentPage />} />
+            <Route path="settings" element={<ProjectSettingsPage />} />
+            <Route path="*" element={<Navigate to="." replace />} />
+          </Route>
           <Route path={ROUTES.DEPLOYMENTS} element={<DeploymentsPage />} />
           <Route path={ROUTES.SETTINGS} element={<Navigate to={ROUTES.SETTINGS_PROFILE} replace />} />
           <Route path={ROUTES.SETTINGS_PROFILE} element={<SettingsPage />} />

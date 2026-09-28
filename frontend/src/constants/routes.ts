@@ -12,6 +12,7 @@ export const ROUTES = {
   SERVER_SETUP: "/servers/:id/setup",
   SERVER_DETAIL: "/servers/:id",
   PROJECTS: "/projects",
+  PROJECT_NEW: "/projects/new",
   PROJECT_DETAIL: "/projects/:id",
   DEPLOYMENTS: "/deployments",
   SETTINGS: "/settings",
@@ -37,4 +38,23 @@ export function serverPrimaryPath(server: { id: string; status: string }): strin
 
 export function projectDetailPath(id: string): string {
   return `/projects/${id}`;
+}
+
+export type ProjectSection =
+  | "deployments"
+  | "variables"
+  | "services"
+  | "services/new"
+  | "environments"
+  | "environments/new"
+  | "settings";
+
+/** Project workspace URL; `environmentId` selects the environment on deployments/variables. */
+export function projectSectionPath(
+  projectId: string,
+  section?: ProjectSection,
+  environmentId?: string,
+): string {
+  const base = section ? `/projects/${projectId}/${section}` : `/projects/${projectId}`;
+  return environmentId ? `${base}?env=${encodeURIComponent(environmentId)}` : base;
 }

@@ -11,8 +11,10 @@ interface AuthState {
   isInitialized: boolean;
   error: string | null;
   initialize: () => Promise<void>;
-  /** Refresh cookies if needed and reload user from API (safe for timers / tab focus). */
+  /** Try /me, refresh on 401 — used on cold restore paths. */
   syncSession: () => Promise<void>;
+  /** POST /refresh then /me — proactive timer only (rotates refresh token). */
+  extendSession: () => Promise<void>;
   register: (data: RegisterForm) => Promise<{ email: string }>;
   login: (data: LoginForm) => Promise<void>;
   logout: () => Promise<void>;
@@ -60,6 +62,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   syncSession: async () => {
     const response = await authService.restoreSession();
+    applyAuthResponse(set, response);
+  },
+
+  extendSession: async () => {
+    const response = await authService.extendSession();
     applyAuthResponse(set, response);
   },
 

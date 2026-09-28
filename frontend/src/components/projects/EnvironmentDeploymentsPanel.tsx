@@ -7,6 +7,7 @@ import { LogViewer } from "@/components/deployments/LogViewer";
 import { Button } from "@/components/ui/button";
 import { useDeploymentLiveUpdates } from "@/hooks/useDeploymentLiveUpdates";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { toastApiError, toastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { deploymentDetailQueryKey } from "@/lib/deployment-cache";
 import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
@@ -24,6 +25,9 @@ interface EnvironmentDeploymentsPanelProps {
   environmentId: string;
   serverStatus: ServerStatus;
   embedded?: boolean;
+  /** `page` gives history and logs full-height room on the Deployments tab. */
+  size?: "default" | "page";
+  canDeploy?: boolean;
 }
 
 export function EnvironmentDeploymentsPanel({
@@ -31,7 +35,10 @@ export function EnvironmentDeploymentsPanel({
   environmentId,
   serverStatus,
   embedded = false,
+  size = "default",
+  canDeploy = true,
 }: EnvironmentDeploymentsPanelProps) {
+  const isPage = size === "page";
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -81,6 +88,7 @@ export function EnvironmentDeploymentsPanel({
     mutationFn: () => deploymentsService.createDeployment(projectId, environmentId),
     onSuccess: (result) => {
       setActionError(null);
+      toastSuccess("Deployment started — logs will stream below.");
       setSelectedId(result.deployment.id);
       queryClient.setQueryData<ListEnvironmentDeploymentsResponse>(listQueryKey, (current) => {
         if (!current) {
@@ -96,7 +104,9 @@ export function EnvironmentDeploymentsPanel({
       });
     },
     onError: (err) => {
-      setActionError(getApiErrorMessage(err, "Failed to start deployment"));
+      const message = getApiErrorMessage(err, "Failed to start deployment");
+      setActionError(message);
+      toastApiError(err, message);
     },
   });
 
@@ -160,7 +170,9 @@ export function EnvironmentDeploymentsPanel({
     <div className={embedded ? "space-y-4" : "mt-4 space-y-4 border-t pt-4"}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Select a run to inspect logs. Deploy when the agent on this server is online.
+          {hasActiveDeployment
+            ? "A deployment is running — logs stream live below."
+            : "Select a run to inspect its logs, or start a new deploy."}
         </p>
         <div className="flex flex-wrap gap-2 sm:shrink-0">
           {isActive && selectedId && (
@@ -194,7 +206,7 @@ export function EnvironmentDeploymentsPanel({
           <Button
             type="button"
             size="sm"
-            disabled={deployMutation.isPending || serverOffline}
+            disabled={deployMutation.isPending || serverOffline || hasActiveDeployment || !canDeploy}
             onClick={() => deployMutation.mutate()}
           >
             {deployMutation.isPending ? (
@@ -202,7 +214,7 @@ export function EnvironmentDeploymentsPanel({
             ) : (
               <Rocket className="h-4 w-4" />
             )}
-            Deploy now
+            {deployments.length > 0 ? "Redeploy" : "Deploy"}
           </Button>
         </div>
       </div>
@@ -212,6 +224,11 @@ export function EnvironmentDeploymentsPanel({
           Agent must be online on the target server before deploying.
         </p>
       )}
+      {!canDeploy && (
+        <p className="text-xs text-amber-700 dark:text-amber-400">
+          Add a service first so DeployHub knows how to build this project.
+        </p>
+      )}
 
       {actionError && <p className="text-sm text-destructive">{actionError}</p>}
 
@@ -219,12 +236,15 @@ export function EnvironmentDeploymentsPanel({
         <InlineListLoadingSkeleton rows={2} />
       ) : deployments.length === 0 ? (
         <p className="rounded-md border border-dashed bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
-          No deployments yet. Use Deploy now to start the first run.
+          No deployments yet. Click Deploy to start the first run.
         </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(220px,280px)_1fr] lg:items-stretch">
           <ul
-            className="max-h-[280px] divide-y overflow-y-auto rounded-lg border bg-card lg:max-h-[360px]"
+            className={cn(
+              "max-h-[280px] divide-y overflow-y-auto rounded-lg border bg-card",
+              isPage ? "lg:max-h-[560px]" : "lg:max-h-[360px]",
+            )}
             role="listbox"
             aria-label="Deployment history"
           >
@@ -291,6 +311,7 @@ export function EnvironmentDeploymentsPanel({
               logs={deployment?.logs}
               isLoading={detailLoading && !deployment}
               followKey={selectedId}
+              className={isPage ? "lg:h-[520px] lg:max-h-[520px]" : undefined}
             />
           </div>
         </div>

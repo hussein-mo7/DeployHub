@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Container, GitBranch, Rocket, Server } from "lucide-react";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/constants/brand";
+import { LogoMark } from "@/components/layout/LogoMark";
 import { cn } from "@/lib/utils";
 
 const highlights = [
@@ -34,21 +36,19 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, className }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
       <aside
-        className="relative hidden overflow-hidden border-r border-border bg-card lg:flex lg:w-[44%] xl:w-[40%] xl:max-w-xl"
+        className="relative hidden overflow-hidden border-r border-border bg-card md:flex md:w-[42%] lg:w-[44%] xl:w-[40%] xl:max-w-xl"
         aria-hidden={false}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/30" />
-        <div className="relative flex w-full flex-col justify-between p-10 xl:p-12">
+        <div className="relative flex w-full flex-col justify-between p-8 lg:p-10 xl:p-12">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground shadow-sm">
-                D
-              </div>
+            <div className="flex items-center gap-1">
+              <LogoMark />
               <div>
-                <p className="text-lg font-semibold tracking-tight text-foreground">DeployHub</p>
-                <p className="text-xs text-muted-foreground">Self-hosted deployments</p>
+                <p className="text-lg font-semibold tracking-tight text-foreground">{BRAND_NAME}</p>
+                <p className="text-xs text-muted-foreground">{BRAND_TAGLINE}</p>
               </div>
             </div>
           </div>
@@ -79,19 +79,15 @@ export function AuthLayout({ children, className }: AuthLayoutProps) {
             </ul>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            DeployHub · Control plane + agent · MVP
-          </p>
+          <p className="text-xs text-muted-foreground">DeployHub · Control plane + agent</p>
         </div>
       </aside>
 
-      <main className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10 lg:px-14">
+      <main className="flex min-h-dvh flex-1 flex-col justify-center overflow-y-auto px-4 py-8 sm:px-8 md:px-10 lg:px-14">
         <div className={cn("mx-auto w-full max-w-[420px]", className)}>
-          <div className="mb-8 flex items-center gap-2 lg:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-              D
-            </div>
-            <span className="font-semibold tracking-tight">DeployHub</span>
+          <div className="mb-8 flex items-center gap-1 md:hidden">
+            <LogoMark />
+            <span className="font-semibold tracking-tight">{BRAND_NAME}</span>
           </div>
           {children}
         </div>

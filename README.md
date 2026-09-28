@@ -48,11 +48,13 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full system design.
 
 ## Quick start (local)
 
-1. **Node 20+**, **Docker** (Redis), **Neon** (or Postgres) — see `.nvmrc`
+1. **Node 20+**, **Docker** — see `.nvmrc`
 2. Copy `backend/.env.example` → `backend/.env` (`DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_KEY`, …)
-3. `npm install` · `docker compose up redis -d` · `npm run db:push`
+3. **Local dev:** `docker compose up -d` (Postgres + Redis) or Redis only · `npm run db:push`
 4. **Terminal 1:** `npm run dev` · **Terminal 2:** `npm run worker`
 5. Open http://localhost:5173 — dashboard **API Status: OK**
+
+**Production VPS (Postgres on the server):** [`docs/VPS-DEPLOY.md`](./docs/VPS-DEPLOY.md)
 
 **Real VPS from localhost:** set `PUBLIC_API_URL` to a tunnel or deployed API URL and `AGENT_DOCKER_IMAGE` — see [`docs/OPERATIONS.md`](./docs/OPERATIONS.md).
 

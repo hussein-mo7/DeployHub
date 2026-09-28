@@ -84,3 +84,12 @@ export async function resendVerification(email: string): Promise<MessageResponse
 export async function refreshSession(): Promise<void> {
   await refreshAccessToken();
 }
+
+/**
+ * Extend session before access token expiry (timer only).
+ * Do not call on every tab focus — each refresh rotates the refresh token server-side.
+ */
+export async function extendSession(): Promise<AuthResponse> {
+  await refreshAccessToken();
+  return getMeDirect();
+}

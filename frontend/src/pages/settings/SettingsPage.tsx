@@ -5,10 +5,11 @@ import { Github, User } from "lucide-react";
 import { ButtonSpinner, SectionLoadingState } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Header } from "@/components/layout/Header";
-import { PageContent } from "@/components/layout/PageContent";
+import { pagePaddingX } from "@/components/layout/PageContent";
+import { PageSection, PageSectionHeader, PageSections } from "@/components/layout/PageSection";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatDateTime } from "@/lib/format-date";
@@ -203,17 +204,25 @@ export function SettingsPage() {
         description="Manage your profile and connections used for deployments."
       />
 
-      <div className="min-h-0 flex-1 overflow-auto">
-        <PageContent>
-          {banner && (
-            <div className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
-              {banner}
-            </div>
-          )}
+      <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+        {banner && (
+          <div
+            className={cn(
+              "border-b border-primary/20 bg-primary/5 py-3 text-sm text-foreground",
+              pagePaddingX,
+            )}
+          >
+            {banner}
+          </div>
+        )}
 
-          <div className="w-full overflow-hidden rounded-xl border bg-card shadow-sm">
-            <div className="grid lg:grid-cols-[minmax(200px,260px)_1fr]">
-              <aside className="border-b bg-muted/15 px-3 py-4 lg:border-b-0 lg:border-r lg:px-4 lg:py-5">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(220px,260px)_1fr]">
+          <aside
+            className={cn(
+              "border-b border-border/80 py-4 lg:border-b-0 lg:border-r lg:py-6",
+              pagePaddingX,
+            )}
+          >
                 <p className="mb-3 hidden px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:block">
                   Settings
                 </p>
@@ -248,25 +257,23 @@ export function SettingsPage() {
                     })}
                   </ul>
                 </nav>
-              </aside>
+          </aside>
 
-              <div className="min-w-0 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-                {actionError && section === "integrations" && (
-                  <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                    {actionError}
-                  </div>
-                )}
+          <div className={cn("min-w-0 py-5 sm:py-6 lg:py-8", pagePaddingX)}>
+            {actionError && section === "integrations" && (
+              <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {actionError}
+              </div>
+            )}
 
-                {section === "profile" && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-base font-semibold text-foreground">Profile</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Your display name in DeployHub. Email changes are not supported yet.
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center">
+            {section === "profile" && (
+              <PageSections>
+                <PageSection>
+                  <PageSectionHeader
+                    title="Profile"
+                    description="Your display name in DeployHub. Email changes are not supported yet."
+                  />
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
                         {initials(nameField || user?.name, user?.email)}
                       </div>
@@ -281,215 +288,190 @@ export function SettingsPage() {
                           </p>
                         )}
                       </div>
-                    </div>
-
-                    <form onSubmit={(e) => void handleProfileSubmit(e)} className="space-y-4">
-                      <div className="grid gap-4 sm:grid-cols-2 lg:max-w-3xl">
-                        <div className="space-y-2">
-                          <Label htmlFor="profile-name">Display name</Label>
-                          <Input
-                            id="profile-name"
-                            value={nameField}
-                            onChange={(e) => {
-                              setNameField(e.target.value);
-                              setProfileSuccess(null);
-                            }}
-                          />
-                          {profileError && (
-                            <p className="text-xs text-destructive">{profileError}</p>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="profile-email">Email</Label>
-                          <Input
-                            id="profile-email"
-                            value={user?.email ?? ""}
-                            disabled
-                            className="bg-muted/50"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Sign-in email is fixed for this account.
-                          </p>
-                        </div>
-                      </div>
-
-                      {profileSuccess && !profileDirty && (
-                        <p className="text-sm text-emerald-700">{profileSuccess}</p>
-                      )}
-
-                      <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-                        {profileDirty && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setNameField(user?.name ?? "");
-                              setProfileError(null);
-                              setProfileSuccess(null);
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                        <Button type="submit" size="sm" disabled={!profileDirty || profileSaving}>
-                          {profileSaving ? (
-                            <>
-                              <ButtonSpinner className="mr-2" />
-                              Saving…
-                            </>
-                          ) : (
-                            "Save changes"
-                          )}
-                        </Button>
-                      </div>
-                    </form>
-
-                    <div className="space-y-4 border-t border-border pt-8">
-                      <div>
-                        <h3 className="text-sm font-semibold text-foreground">Password</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Update your sign-in password. You must enter your current password to save a
-                          new one.
-                        </p>
-                      </div>
-
-                      <form onSubmit={(e) => void handlePasswordSubmit(e)} className="space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                          <div className="space-y-2">
-                            <Label htmlFor="current-password">Current password</Label>
-                            <Input
-                              id="current-password"
-                              type="password"
-                              autoComplete="current-password"
-                              value={passwordForm.currentPassword}
-                              onChange={(e) =>
-                                setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
-                              }
-                            />
-                            {passwordFieldErrors.currentPassword && (
-                              <p className="text-xs text-destructive">
-                                {passwordFieldErrors.currentPassword}
-                              </p>
-                            )}
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="settings-new-password">New password</Label>
-                            <Input
-                              id="settings-new-password"
-                              type="password"
-                              autoComplete="new-password"
-                              value={passwordForm.newPassword}
-                              onChange={(e) =>
-                                setPasswordForm({ ...passwordForm, newPassword: e.target.value })
-                              }
-                            />
-                            {passwordFieldErrors.newPassword && (
-                              <p className="text-xs text-destructive">
-                                {passwordFieldErrors.newPassword}
-                              </p>
-                            )}
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="settings-confirm-password">Confirm new password</Label>
-                            <Input
-                              id="settings-confirm-password"
-                              type="password"
-                              autoComplete="new-password"
-                              value={passwordForm.confirmNewPassword}
-                              onChange={(e) =>
-                                setPasswordForm({
-                                  ...passwordForm,
-                                  confirmNewPassword: e.target.value,
-                                })
-                              }
-                            />
-                            {passwordFieldErrors.confirmNewPassword && (
-                              <p className="text-xs text-destructive">
-                                {passwordFieldErrors.confirmNewPassword}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {passwordError && (
-                          <p className="text-sm text-destructive">{passwordError}</p>
-                        )}
-
-                        <p className="text-xs text-muted-foreground">
-                          Don&apos;t know your current password?{" "}
-                          <Link
-                            to={ROUTES.FORGOT_PASSWORD}
-                            className="font-medium text-primary hover:underline"
-                          >
-                            Reset via email
-                          </Link>
-                        </p>
-
-                        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-                          {passwordDirty && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setPasswordForm({
-                                  currentPassword: "",
-                                  newPassword: "",
-                                  confirmNewPassword: "",
-                                });
-                                setPasswordFieldErrors({});
-                                setPasswordError(null);
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          )}
-                          <Button
-                            type="submit"
-                            size="sm"
-                            disabled={!passwordDirty || passwordSaving}
-                          >
-                            {passwordSaving ? (
-                              <>
-                                <ButtonSpinner className="mr-2" />
-                                Updating…
-                              </>
-                            ) : (
-                              "Update password"
-                            )}
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
                   </div>
-                )}
 
-                {section === "integrations" && (
-                  <div className="space-y-6">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                          <Github className="h-4 w-4" />
-                          GitHub App
-                        </h2>
-                        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                          Required to clone private repositories during deploys and to receive push
-                          webhooks for auto deploy.
-                        </p>
-                      </div>
-                      {connected ? (
-                        <span className="inline-flex w-fit shrink-0 items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                          Connected
-                        </span>
-                      ) : (
-                        !integrationLoading && (
-                          <span className="inline-flex w-fit shrink-0 items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                            Not connected
-                          </span>
-                        )
-                      )}
+                  <form onSubmit={(e) => void handleProfileSubmit(e)} className="space-y-4">
+                    <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+                      <FormField id="profile-name" label="Display name" error={profileError ?? undefined}>
+                        <Input
+                          id="profile-name"
+                          value={nameField}
+                          onChange={(e) => {
+                            setNameField(e.target.value);
+                            setProfileSuccess(null);
+                          }}
+                        />
+                      </FormField>
+                      <FormField
+                        id="profile-email"
+                        label="Email"
+                        hint="Sign-in email is fixed for this account."
+                      >
+                        <Input id="profile-email" value={user?.email ?? ""} disabled />
+                      </FormField>
                     </div>
+
+                    {profileSuccess && !profileDirty && (
+                      <p className="text-sm text-emerald-700">{profileSuccess}</p>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {profileDirty && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setNameField(user?.name ?? "");
+                            setProfileError(null);
+                            setProfileSuccess(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      <Button type="submit" size="sm" disabled={!profileDirty || profileSaving}>
+                        {profileSaving ? (
+                          <>
+                            <ButtonSpinner className="mr-2" />
+                            Saving…
+                          </>
+                        ) : (
+                          "Save changes"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </PageSection>
+
+                <PageSection>
+                  <PageSectionHeader
+                    title="Password"
+                    description="Update your sign-in password. You must enter your current password to save a new one."
+                  />
+                  <form onSubmit={(e) => void handlePasswordSubmit(e)} className="space-y-4">
+                    <div className="grid max-w-4xl gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      <FormField
+                        id="current-password"
+                        label="Current password"
+                        error={passwordFieldErrors.currentPassword}
+                      >
+                        <Input
+                          id="current-password"
+                          type="password"
+                          autoComplete="current-password"
+                          value={passwordForm.currentPassword}
+                          onChange={(e) =>
+                            setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
+                          }
+                        />
+                      </FormField>
+                      <FormField
+                        id="settings-new-password"
+                        label="New password"
+                        error={passwordFieldErrors.newPassword}
+                      >
+                        <Input
+                          id="settings-new-password"
+                          type="password"
+                          autoComplete="new-password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) =>
+                            setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                          }
+                        />
+                      </FormField>
+                      <FormField
+                        id="settings-confirm-password"
+                        label="Confirm new password"
+                        error={passwordFieldErrors.confirmNewPassword}
+                      >
+                        <Input
+                          id="settings-confirm-password"
+                          type="password"
+                          autoComplete="new-password"
+                          value={passwordForm.confirmNewPassword}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirmNewPassword: e.target.value,
+                            })
+                          }
+                        />
+                      </FormField>
+                    </div>
+
+                    {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
+
+                    <p className="text-xs text-muted-foreground">
+                      Don&apos;t know your current password?{" "}
+                      <Link
+                        to={ROUTES.FORGOT_PASSWORD}
+                        className="font-medium text-primary hover:underline"
+                      >
+                        Reset via email
+                      </Link>
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {passwordDirty && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setPasswordForm({
+                              currentPassword: "",
+                              newPassword: "",
+                              confirmNewPassword: "",
+                            });
+                            setPasswordFieldErrors({});
+                            setPasswordError(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      <Button type="submit" size="sm" disabled={!passwordDirty || passwordSaving}>
+                        {passwordSaving ? (
+                          <>
+                            <ButtonSpinner className="mr-2" />
+                            Updating…
+                          </>
+                        ) : (
+                          "Update password"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </PageSection>
+              </PageSections>
+            )}
+
+            {section === "integrations" && (
+              <PageSection>
+                <PageSectionHeader
+                  title={
+                    <span className="inline-flex items-center gap-2">
+                      <Github className="h-4 w-4" />
+                      GitHub App
+                    </span>
+                  }
+                  description="Required to clone private repositories during deploys and to receive push webhooks for auto deploy."
+                  actions={
+                    connected ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                        Connected
+                      </span>
+                    ) : (
+                      !integrationLoading && (
+                        <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                          Not connected
+                        </span>
+                      )
+                    )
+                  }
+                />
 
                     {integrationLoading && (
                       <SectionLoadingState label="Loading GitHub integration…" />
@@ -599,12 +581,10 @@ export function SettingsPage() {
                         </div>
                       </>
                     )}
-                  </div>
-                )}
-              </div>
-            </div>
+              </PageSection>
+            )}
           </div>
-        </PageContent>
+        </div>
       </div>
     </>
   );

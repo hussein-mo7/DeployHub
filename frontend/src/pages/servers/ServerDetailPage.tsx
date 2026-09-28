@@ -6,13 +6,13 @@ import { PageLoadingState } from "@/components/ui/loading-state";
 import { DetailRow } from "@/components/layout/DetailRow";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
+import { PageSection, PageSectionHeader, PageSections } from "@/components/layout/PageSection";
 import { PublicApiUrlBanner } from "@/components/servers/PublicApiUrlBanner";
 import { ServerSetupPanel } from "@/components/servers/ServerSetupPanel";
 import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ROUTES, serverSetupPath } from "@/constants/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
@@ -204,13 +204,14 @@ export function ServerDetailPage() {
             </>
           )}
 
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Connection</CardTitle>
-                <CardDescription>Live agent status and timestamps.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
+          <PageSections>
+            <div className="grid grid-cols-1 gap-10 xl:grid-cols-2">
+              <PageSection className="space-y-4">
+                <PageSectionHeader
+                  title="Connection"
+                  description="Live agent status and timestamps."
+                  className="border-0 pb-0"
+                />
                 <DetailRow label="Status">
                   <ServerStatusBadge status={server.status} />
                 </DetailRow>
@@ -232,58 +233,41 @@ export function ServerDetailPage() {
                   </DetailRow>
                 )}
                 <DetailRow label="Created">{formatDateTime(server.createdAt)}</DetailRow>
-              </CardContent>
-            </Card>
+              </PageSection>
 
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base">Details</CardTitle>
-                <CardDescription>Display name and notes for this server.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={(e) => void handleUpdate(e)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-name">Name</Label>
+              <PageSection>
+                <PageSectionHeader
+                  title="Details"
+                  description="Display name and notes for this server."
+                />
+                <form onSubmit={(e) => void handleUpdate(e)} className="space-y-4 max-w-lg">
+                  <FormField id="edit-name" label="Name" error={fieldErrors.name}>
                     <Input
                       id="edit-name"
                       value={editForm.name}
                       onChange={(e) => setForm({ ...editForm, name: e.target.value })}
                     />
-                    {fieldErrors.name && (
-                      <p className="text-xs text-destructive">{fieldErrors.name}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-description">Description</Label>
+                  </FormField>
+                  <FormField id="edit-description" label="Description" optional error={fieldErrors.description}>
                     <Input
                       id="edit-description"
                       placeholder="Optional"
                       value={editForm.description}
                       onChange={(e) => setForm({ ...editForm, description: e.target.value })}
                     />
-                    {fieldErrors.description && (
-                      <p className="text-xs text-destructive">{fieldErrors.description}</p>
-                    )}
-                  </div>
-
+                  </FormField>
                   <Button type="submit" disabled={!isDirty || updateMutation.isPending}>
                     {updateMutation.isPending ? "Saving…" : "Save changes"}
                   </Button>
                 </form>
-              </CardContent>
-            </Card>
-          </div>
+              </PageSection>
+            </div>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Agent setup</CardTitle>
-              <CardDescription>
-                Generate a new registration token if the agent was never installed or the token
-                expired.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <PageSection>
+              <PageSectionHeader
+                title="Agent setup"
+                description="Generate a new registration token if the agent was never installed or the token expired."
+              />
               <Button
                 variant="outline"
                 disabled={regenerateMutation.isPending || Boolean(server.registeredAt)}
@@ -292,28 +276,24 @@ export function ServerDetailPage() {
                 <RefreshCw className="h-4 w-4" />
                 {regenerateMutation.isPending ? "Generating…" : "New install token"}
               </Button>
-            </CardContent>
-          </Card>
+            </PageSection>
 
-          <Card className="border-destructive/20 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
-              <CardDescription>
-                Permanently delete this server. Projects targeting it will need a new environment.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <PageSection className="border-t border-destructive/25 pt-10">
+              <PageSectionHeader
+                title={<span className="text-destructive">Danger zone</span>}
+                description="Permanently delete this server. Projects targeting it will need a new environment."
+                className="border-destructive/20"
+              />
               <Button
-                variant="outline"
-                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                variant="destructive"
                 disabled={deleteMutation.isPending}
                 onClick={() => void handleDelete()}
               >
                 <Trash2 className="h-4 w-4" />
                 {deleteMutation.isPending ? "Deleting…" : "Delete server"}
               </Button>
-            </CardContent>
-          </Card>
+            </PageSection>
+          </PageSections>
         </PageContent>
       </div>
     </>

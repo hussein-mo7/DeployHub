@@ -12,7 +12,7 @@ export function Sidebar() {
     <aside
       className={cn(
         "hidden h-full shrink-0 flex-col border-r border-border bg-card transition-[width] duration-200 ease-out lg:flex lg:flex-col",
-        sidebarCollapsed ? "w-[72px]" : "w-[240px]",
+        sidebarCollapsed ? "w-[76px]" : "w-[240px]",
       )}
     >
       <div

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { isUnauthorizedError } from "@/lib/api-errors";
@@ -8,6 +8,17 @@ import { PageLoadingState } from "@/components/ui/loading-state";
 import { toastError } from "@/lib/toast";
 import { useAuthStore } from "@/stores/auth.store";
 
+const VISIBILITY_SYNC_DEBOUNCE_MS = 60_000;
+
+function handleSessionExpired(
+  clearSession: () => void,
+  navigate: ReturnType<typeof useNavigate>,
+) {
+  toastError("Your session expired. Please sign in again.");
+  clearSession();
+  navigate(ROUTES.LOGIN, { replace: true });
+}
+
 export function SessionManager({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -16,16 +27,21 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
   const initialize = useAuthStore((s) => s.initialize);
   const clearSession = useAuthStore((s) => s.clearSession);
   const syncSession = useAuthStore((s) => s.syncSession);
+  const extendSession = useAuthStore((s) => s.extendSession);
+
+  const lastVisibilitySyncRef = useRef(0);
+  const lastExtendRef = useRef(0);
 
   useEffect(() => {
+    if (useAuthStore.getState().isInitialized) {
+      return;
+    }
     void initialize();
   }, [initialize]);
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
-      toastError("Your session expired. Please sign in again.");
-      clearSession();
-      navigate(ROUTES.LOGIN, { replace: true });
+      handleSessionExpired(clearSession, navigate);
     });
     return () => setSessionExpiredHandler(null);
   }, [clearSession, navigate]);
@@ -35,23 +51,41 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const refresh = () => {
-      void syncSession().catch((error: unknown) => {
-        if (!isUnauthorizedError(error)) {
-          return;
+    const onUnauthorized = (error: unknown) => {
+      if (!isUnauthorizedError(error)) {
+        if (import.meta.env.DEV) {
+          console.warn("[session] sync failed", error);
         }
-        toastError("Your session expired. Please sign in again.");
-        clearSession();
-        navigate(ROUTES.LOGIN, { replace: true });
-      });
+        return;
+      }
+      handleSessionExpired(clearSession, navigate);
+    };
+
+    const syncIfStale = () => {
+      const now = Date.now();
+      if (now - lastVisibilitySyncRef.current < VISIBILITY_SYNC_DEBOUNCE_MS) {
+        return;
+      }
+      lastVisibilitySyncRef.current = now;
+      void syncSession().catch(onUnauthorized);
+    };
+
+    const extendIfDue = () => {
+      const now = Date.now();
+      const intervalMs = getProactiveRefreshIntervalMs(accessTokenTtlSeconds);
+      if (now - lastExtendRef.current < intervalMs * 0.9) {
+        return;
+      }
+      lastExtendRef.current = now;
+      void extendSession().catch(onUnauthorized);
     };
 
     const refreshIntervalMs = getProactiveRefreshIntervalMs(accessTokenTtlSeconds);
-    const intervalId = window.setInterval(refresh, refreshIntervalMs);
+    const intervalId = window.setInterval(extendIfDue, refreshIntervalMs);
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        refresh();
+        syncIfStale();
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -60,7 +94,7 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [user, accessTokenTtlSeconds, clearSession, navigate, syncSession]);
+  }, [user, accessTokenTtlSeconds, clearSession, navigate, syncSession, extendSession]);
 
   if (!isInitialized) {
     return (

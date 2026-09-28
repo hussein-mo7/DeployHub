@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Full-width page body with consistent horizontal padding (no max-width cap). */
+/**
+ * Page body padding inside the main canvas. Do not wrap this in an extra Card — the shell is already the surface.
+ */
 export function PageContent({
   children,
   className,
@@ -12,7 +14,7 @@ export function PageContent({
   return (
     <div
       className={cn(
-        "w-full space-y-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6",
+        "w-full min-h-0 flex-1 space-y-8 px-4 py-5 sm:px-6 lg:px-8 lg:py-7",
         className,
       )}
     >

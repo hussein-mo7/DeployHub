@@ -93,7 +93,8 @@ api.interceptors.response.use(
       processQueue(false);
       if (
         isUnauthorizedError(refreshError) &&
-        !requestUrl.includes("/auth/me")
+        !requestUrl.includes("/auth/me") &&
+        !requestUrl.includes("/auth/refresh")
       ) {
         notifySessionExpired();
       }

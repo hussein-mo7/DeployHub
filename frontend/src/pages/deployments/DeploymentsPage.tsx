@@ -8,10 +8,10 @@ import { LogViewer } from "@/components/deployments/LogViewer";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
+import { PageSection, PageSectionHeader } from "@/components/layout/PageSection";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, nativeSelectClassName } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { projectDetailPath, ROUTES } from "@/constants/routes";
 import { useDeploymentLiveUpdates } from "@/hooks/useDeploymentLiveUpdates";
 import { cn } from "@/lib/utils";
@@ -20,9 +20,6 @@ import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
 import { formatDeploymentTrigger } from "@/lib/format-deployment";
 import * as deploymentsService from "@/services/deployments.service";
 import type { DeploymentStatus, DeploymentSummary } from "@/types/deployments.types";
-
-const selectClassName =
-  "flex h-9 w-full min-w-0 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[140px]";
 
 type StatusFilter = "all" | "active" | DeploymentStatus;
 
@@ -181,74 +178,61 @@ export function DeploymentsPage() {
       />
 
       <div className="min-h-0 flex-1 overflow-auto">
-        <PageContent>
-          <Card className="w-full shadow-sm">
-            <CardHeader className="flex flex-col gap-4 space-y-0">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <CardTitle className="text-base">Deployment history</CardTitle>
-                  <CardDescription>
-                    Filter runs, pick one from the list, and read logs in the panel.
-                    Active jobs refresh automatically.
-                  </CardDescription>
+        <PageContent className="space-y-0">
+          <PageSection className="space-y-6">
+            <PageSectionHeader
+              title="Deployment history"
+              description="Filter runs, pick one from the list, and read logs in the panel. Active jobs refresh automatically."
+            />
+
+            {deployments && deployments.length > 0 && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <div className="relative min-w-0 flex-1 sm:max-w-xs">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search project, environment, commit…"
+                    className="pl-9"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <FormField id="deploy-filter-status" label="Status" className="w-full sm:w-auto sm:min-w-[140px]">
+                    <select
+                      id="deploy-filter-status"
+                      className={nativeSelectClassName}
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                    >
+                      <option value="all">All statuses</option>
+                      <option value="active">Active</option>
+                      <option value="SUCCESS">Success</option>
+                      <option value="FAILED">Failed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                      <option value="RUNNING">Running</option>
+                    </select>
+                  </FormField>
+                  <FormField id="deploy-filter-project" label="Project" className="w-full sm:w-auto sm:min-w-[160px]">
+                    <select
+                      id="deploy-filter-project"
+                      className={nativeSelectClassName}
+                      value={projectFilter}
+                      onChange={(e) => setProjectFilter(e.target.value)}
+                    >
+                      <option value="all">All projects</option>
+                      {projectOptions.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
                 </div>
               </div>
+            )}
 
-              {deployments && deployments.length > 0 && (
-                <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-end">
-                  <div className="relative min-w-0 flex-1 sm:max-w-xs">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search project, environment, commit…"
-                      className="pl-9"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="deploy-filter-status" className="text-xs text-muted-foreground">
-                        Status
-                      </Label>
-                      <select
-                        id="deploy-filter-status"
-                        className={selectClassName}
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                      >
-                        <option value="all">All statuses</option>
-                        <option value="active">Active</option>
-                        <option value="SUCCESS">Success</option>
-                        <option value="FAILED">Failed</option>
-                        <option value="CANCELLED">Cancelled</option>
-                        <option value="RUNNING">Running</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="deploy-filter-project" className="text-xs text-muted-foreground">
-                        Project
-                      </Label>
-                      <select
-                        id="deploy-filter-project"
-                        className={selectClassName}
-                        value={projectFilter}
-                        onChange={(e) => setProjectFilter(e.target.value)}
-                      >
-                        <option value="all">All projects</option>
-                        {projectOptions.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardHeader>
-
-            <CardContent>
+            <div>
               {isLoading && <ListLoadingSkeleton rows={5} />}
               {isError && (
                 <p className="text-sm text-destructive">Failed to load deployments.</p>
@@ -279,7 +263,7 @@ export function DeploymentsPage() {
                           {filtered.length} deployment{filtered.length === 1 ? "" : "s"}
                         </p>
                         <ul
-                          className="max-h-[min(420px,50vh)] divide-y overflow-y-auto rounded-lg border bg-card lg:max-h-[calc(100vh-16rem)]"
+                          className="max-h-[min(420px,50vh)] divide-y overflow-y-auto rounded-lg border lg:max-h-[calc(100vh-16rem)]"
                           role="listbox"
                           aria-label="Deployments"
                         >
@@ -327,7 +311,7 @@ export function DeploymentsPage() {
 
                       <div
                         className={cn(
-                          "order-2 rounded-lg border bg-muted/10 p-4 shadow-sm",
+                          "order-2 rounded-lg border border-border/80 p-4",
                           !selectedId &&
                             "hidden min-h-[280px] items-center justify-center lg:flex lg:min-h-[420px]",
                         )}
@@ -347,8 +331,8 @@ export function DeploymentsPage() {
                   )}
                 </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </PageSection>
         </PageContent>
       </div>
     </>

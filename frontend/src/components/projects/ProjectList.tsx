@@ -2,28 +2,27 @@ import { Link } from "react-router-dom";
 import { ChevronRight, FolderKanban, Plus } from "lucide-react";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Button } from "@/components/ui/button";
-import { projectDetailPath } from "@/constants/routes";
+import { ROUTES, projectDetailPath } from "@/constants/routes";
 import type { ProjectSummary } from "@/types/projects.types";
 
 interface ProjectListProps {
   projects: ProjectSummary[];
-  onCreateProject?: () => void;
 }
 
-export function ProjectList({ projects, onCreateProject }: ProjectListProps) {
+export function ProjectList({ projects }: ProjectListProps) {
   if (projects.length === 0) {
     return (
       <EmptyState
         icon={FolderKanban}
         title="No projects yet"
-        description="Link a GitHub repository, add services, and configure production or staging environments."
+        description="Pick a GitHub repository, choose how it builds, and select a server — the wizard walks you through it."
         action={
-          onCreateProject ? (
-            <Button onClick={onCreateProject}>
+          <Button asChild>
+            <Link to={ROUTES.PROJECT_NEW}>
               <Plus className="h-4 w-4" />
               Create your first project
-            </Button>
-          ) : undefined
+            </Link>
+          </Button>
         }
       />
     );
@@ -36,7 +35,7 @@ export function ProjectList({ projects, onCreateProject }: ProjectListProps) {
           <li key={project.id}>
             <Link
               to={projectDetailPath(project.id)}
-              className="flex items-center justify-between gap-3 rounded-lg border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30"
+              className="flex items-center justify-between gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/30"
             >
               <div className="min-w-0">
                 <p className="font-medium text-foreground">{project.name}</p>
@@ -55,7 +54,7 @@ export function ProjectList({ projects, onCreateProject }: ProjectListProps) {
         ))}
       </ul>
 
-      <div className="hidden overflow-hidden rounded-lg border bg-card shadow-sm md:block">
+      <div className="hidden overflow-hidden rounded-lg border md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left text-xs text-muted-foreground">

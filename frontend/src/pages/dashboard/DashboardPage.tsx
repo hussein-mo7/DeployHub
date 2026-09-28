@@ -4,7 +4,6 @@ import {
   Activity,
   ArrowRight,
   FolderKanban,
-  Plus,
   Rocket,
   Server,
   ServerOff,
@@ -12,10 +11,18 @@ import {
 import { DeploymentStatusBadge } from "@/components/deployments/DeploymentStatusBadge";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Header } from "@/components/layout/Header";
+import { WorkerReminderBanner } from "@/components/layout/WorkerReminderBanner";
 import { PageContent } from "@/components/layout/PageContent";
+import { PageSection, PageSectionHeader } from "@/components/layout/PageSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FirstDeployChecklist } from "@/components/projects/FirstDeployChecklist";
 import { InlineListLoadingSkeleton } from "@/components/ui/loading-state";
+import {
+  buildAccountFirstDeploySteps,
+  isChecklistComplete,
+} from "@/lib/first-deploy-checklist";
+import * as githubService from "@/services/github.service";
 import { projectDetailPath, ROUTES } from "@/constants/routes";
 import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
 import { checkHealth } from "@/services/api";
@@ -41,7 +48,7 @@ function StatCard({
   linkLabel?: string;
 }) {
   return (
-    <Card className="shadow-sm">
+    <Card>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <CardDescription className="text-xs font-medium uppercase tracking-wide">
           {label}
@@ -83,6 +90,11 @@ export function DashboardPage() {
     queryFn: projectsService.listProjects,
   });
 
+  const { data: githubIntegration } = useQuery({
+    queryKey: ["github", "integration"],
+    queryFn: githubService.getIntegration,
+  });
+
   const { data: recentDeployments, isLoading: deploymentsLoading } = useQuery({
     queryKey: ["deployments", "recent"],
     queryFn: () => deploymentsService.listRecentDeployments(50),
@@ -109,6 +121,14 @@ export function DashboardPage() {
   const apiOk = !healthLoading && !healthError && health?.status === "ok";
   const showAgentWarning = servers.length > 0 && onlineCount === 0;
   const isEmptyAccount = !serversLoading && !projectsLoading && servers.length === 0 && projects.length === 0;
+  const githubConnected = githubIntegration?.integration?.connected === true;
+  const accountChecklistSteps = buildAccountFirstDeploySteps({
+    githubConnected,
+    servers,
+    projectCount: projects.length,
+    hasSuccessfulDeploy: successCount > 0,
+  });
+  const showAccountChecklist = !isChecklistComplete(accountChecklistSteps);
 
   return (
     <>
@@ -119,6 +139,8 @@ export function DashboardPage() {
 
       <div className="min-h-0 flex-1 overflow-auto">
         <PageContent>
+          <WorkerReminderBanner visible={servers.length > 0 || projects.length > 0} />
+
           {showAgentWarning && (
             <div
               className="flex flex-col gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
@@ -140,29 +162,15 @@ export function DashboardPage() {
             </div>
           )}
 
-          {isEmptyAccount && (
-            <Card className="border-dashed shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg">Get started with DeployHub</CardTitle>
-                <CardDescription>
-                  Add a server → install the agent (SSH on server detail or manual token) → connect
-                  GitHub in Settings → create a project. Run{" "}
-                  <span className="font-mono text-xs">npm run worker</span> locally so deploys and
-                  bootstrap jobs execute.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Button asChild>
-                  <Link to={ROUTES.SERVER_NEW}>
-                    <Plus className="h-4 w-4" />
-                    Add server
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to={ROUTES.SETTINGS_INTEGRATIONS}>Connect GitHub</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {showAccountChecklist && (
+            <FirstDeployChecklist
+              steps={accountChecklistSteps}
+              description={
+                isEmptyAccount
+                  ? "Complete these steps once. Run npm run worker locally so deploy and bootstrap jobs execute."
+                  : "Pick up where you left off — links go to the next action."
+              }
+            />
           )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
@@ -214,21 +222,19 @@ export function DashboardPage() {
             />
           </div>
 
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle className="text-base">Recent deployments</CardTitle>
-                <CardDescription>
-                  Latest runs across all environments. Active jobs refresh automatically.
-                </CardDescription>
-              </div>
-              {deployments.length > 0 && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={ROUTES.DEPLOYMENTS}>View all</Link>
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
+          <PageSection>
+            <PageSectionHeader
+              title="Recent deployments"
+              description="Latest runs across all environments. Active jobs refresh automatically."
+              actions={
+                deployments.length > 0 ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={ROUTES.DEPLOYMENTS}>View all</Link>
+                  </Button>
+                ) : undefined
+              }
+            />
+            <div>
               {deploymentsLoading && <InlineListLoadingSkeleton rows={3} />}
               {!deploymentsLoading && recentRows.length === 0 && (
                 <EmptyState
@@ -248,7 +254,7 @@ export function DashboardPage() {
                     {recentRows.map((deployment) => (
                       <li
                         key={deployment.id}
-                        className="rounded-lg border bg-card p-4 shadow-sm"
+                        className="rounded-lg border p-4"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <DeploymentStatusBadge status={deployment.status} />
@@ -319,8 +325,8 @@ export function DashboardPage() {
                   </div>
                 </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </PageSection>
         </PageContent>
       </div>
     </>

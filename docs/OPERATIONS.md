@@ -2,6 +2,7 @@
 
 How to connect a Linux VPS, publish the agent image, and run the control plane so installs and deploys work in production (not only on localhost).
 
+**Full control-plane install (Postgres + Redis on the VPS):** [VPS-DEPLOY.md](./VPS-DEPLOY.md)  
 **Product context:** [RELEASE-2.0.md](./RELEASE-2.0.md) · **Local API testing:** [TESTING.md](./TESTING.md)
 
 ---

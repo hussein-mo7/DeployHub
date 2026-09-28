@@ -4,12 +4,12 @@ import { Sidebar } from "./Sidebar";
 
 export function AppShell() {
   return (
-    <div className="flex h-screen overflow-hidden bg-muted/40">
+    <div className="flex h-dvh overflow-hidden bg-muted/40">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <MobileAppBar />
         <MobileNavDrawer />
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background shadow-sm pt-14 lg:pt-0">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background pt-14 lg:pt-0">
           <Outlet />
         </main>
       </div>

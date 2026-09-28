@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock, Plus, Trash2 } from "lucide-react";
+import {
+  EnvironmentVariablesBulkImport,
+  mergeEnvImportIntoDrafts,
+} from "@/components/projects/EnvironmentVariablesBulkImport";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableLoadingSkeleton } from "@/components/ui/loading-state";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { toastSuccess } from "@/lib/toast";
 import { saveEnvironmentVariablesSchema } from "@/lib/validations/projects.schema";
 import * as projectsService from "@/services/projects.service";
 import type { EnvVariableDraft } from "@/types/projects.types";
@@ -57,6 +62,7 @@ interface EnvironmentVariablesPanelProps {
   environmentId: string;
   environmentName: string;
   embedded?: boolean;
+  onSaved?: (redeployQueued: boolean) => void;
 }
 
 export function EnvironmentVariablesPanel({
@@ -64,6 +70,7 @@ export function EnvironmentVariablesPanel({
   environmentId,
   environmentName,
   embedded = false,
+  onSaved,
 }: EnvironmentVariablesPanelProps) {
   const queryClient = useQueryClient();
   const queryKey = ["projects", projectId, "environments", environmentId, "variables"];
@@ -74,6 +81,7 @@ export function EnvironmentVariablesPanel({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [revealedValues, setRevealedValues] = useState<Record<string, string>>({});
   const [revealLoadingId, setRevealLoadingId] = useState<string | null>(null);
+  const [mode, setMode] = useState<"editor" | "bulk">("editor");
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey,
@@ -136,6 +144,7 @@ export function EnvironmentVariablesPanel({
       const drafts = variablesToDrafts(result.variables);
       setRows(drafts);
       setSavedSnapshot(snapshotRows(drafts));
+      onSaved?.(redeploy);
     },
     onError: (err) => {
       if (err instanceof Error && err.message === "Validation failed") {
@@ -226,11 +235,37 @@ export function EnvironmentVariablesPanel({
               : `Runtime config for ${environmentName}. Values are encrypted — use the eye icon to reveal.`}
           </p>
         </div>
-        {isDirty && (
-          <span className="inline-flex w-fit items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-            Unsaved changes
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {isDirty && (
+            <span className="inline-flex w-fit items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+              Unsaved changes
+            </span>
+          )}
+          {!isLoading && !isError && (
+            <div className="inline-flex rounded-md border p-0.5 text-xs">
+              <button
+                type="button"
+                className={cn(
+                  "rounded px-2.5 py-1 font-medium transition-colors",
+                  mode === "editor" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )}
+                onClick={() => setMode("editor")}
+              >
+                Editor
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "rounded px-2.5 py-1 font-medium transition-colors",
+                  mode === "bulk" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )}
+                onClick={() => setMode("bulk")}
+              >
+                Bulk import
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {isLoading && <TableLoadingSkeleton rows={3} />}
@@ -253,7 +288,20 @@ export function EnvironmentVariablesPanel({
         </div>
       )}
 
-      {!isLoading && !isError && (
+      {!isLoading && !isError && mode === "bulk" && (
+        <EnvironmentVariablesBulkImport
+          existingKeys={rows.filter((row) => row.key.trim()).map((row) => row.key.trim())}
+          onCancel={() => setMode("editor")}
+          onMerge={(imported) => {
+            setRows((current) => mergeEnvImportIntoDrafts(current, imported));
+            setSuccessMessage(null);
+            setMode("editor");
+            toastSuccess(`Imported ${imported.length} variable${imported.length === 1 ? "" : "s"} — review and save.`);
+          }}
+        />
+      )}
+
+      {!isLoading && !isError && mode === "editor" && (
         <>
           <div className="overflow-hidden rounded-lg border bg-card">
             <div className="overflow-x-auto">

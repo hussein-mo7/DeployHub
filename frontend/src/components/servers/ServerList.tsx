@@ -47,7 +47,7 @@ export function ServerList({ servers }: ServerListProps) {
           <li key={server.id}>
             <Link
               to={serverPrimaryPath(server)}
-              className="flex items-center justify-between gap-3 rounded-lg border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30"
+              className="flex items-center justify-between gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/30"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -67,7 +67,7 @@ export function ServerList({ servers }: ServerListProps) {
         ))}
       </ul>
 
-      <div className="hidden overflow-hidden rounded-lg border bg-card shadow-sm md:block">
+      <div className="hidden overflow-hidden rounded-lg border md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left text-xs text-muted-foreground">

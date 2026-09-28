@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormErrorBanner, FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ButtonSpinner } from "@/components/ui/loading-state";
+import { zodFieldErrors } from "@/lib/form-errors";
 import { createServerSchema } from "@/lib/validations/servers.schema";
 
 interface CreateServerFormProps {
@@ -13,12 +14,7 @@ interface CreateServerFormProps {
   error: string | null;
 }
 
-export function CreateServerForm({
-  onSubmit,
-  onCancel,
-  isSubmitting,
-  error,
-}: CreateServerFormProps) {
+export function CreateServerForm({ onSubmit, onCancel, isSubmitting, error }: CreateServerFormProps) {
   const [form, setForm] = useState({ name: "", description: "" });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -26,18 +22,12 @@ export function CreateServerForm({
     e.preventDefault();
     setFieldErrors({});
 
-    const payload = {
+    const result = createServerSchema.safeParse({
       name: form.name,
       ...(form.description.trim() ? { description: form.description.trim() } : {}),
-    };
-
-    const result = createServerSchema.safeParse(payload);
+    });
     if (!result.success) {
-      const errors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0]) errors[String(err.path[0])] = err.message;
-      });
-      setFieldErrors(errors);
+      setFieldErrors(zodFieldErrors(result.error));
       return;
     }
 
@@ -45,63 +35,57 @@ export function CreateServerForm({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add server</CardTitle>
-        <CardDescription>
-          Register a VPS deploy target. On the next screen you can install the agent via one-time SSH
-          or use a manual install token.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-          {error && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </div>
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+      <FormErrorBanner message={error} />
+
+      <FormField
+        id="server-name"
+        label="Server name"
+        hint="How this VPS appears in DeployHub, e.g. “Production EU” or “Staging”."
+        error={fieldErrors.name}
+      >
+        <Input
+          id="server-name"
+          autoFocus
+          placeholder="Production VPS"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+      </FormField>
+
+      <FormField
+        id="server-description"
+        label="Description"
+        optional
+        hint="Provider, region, or anything that helps you recognise it later."
+        error={fieldErrors.description}
+      >
+        <Input
+          id="server-description"
+          placeholder="Hetzner CX22 · Falkenstein"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
+      </FormField>
+
+      <div className="flex flex-col-reverse gap-2 border-t pt-5 sm:flex-row sm:justify-end">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <ButtonSpinner className="mr-2" />
+              Creating…
+            </>
+          ) : (
+            <>
+              Continue to install
+              <ArrowRight className="h-4 w-4" />
+            </>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="server-name">Name</Label>
-            <Input
-              id="server-name"
-              placeholder="Production VPS"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="server-description">Description (optional)</Label>
-            <Input
-              id="server-description"
-              placeholder="Main production server"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-            {fieldErrors.description && (
-              <p className="text-xs text-destructive">{fieldErrors.description}</p>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <ButtonSpinner className="mr-2" />
-                  Creating…
-                </>
-              ) : (
-                "Continue to install"
-              )}
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+        </Button>
+      </div>
+    </form>
   );
 }

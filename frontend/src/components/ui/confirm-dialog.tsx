@@ -10,6 +10,7 @@ import {
 } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export interface ConfirmOptions {
@@ -18,6 +19,8 @@ export interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: "destructive" | "default";
+  /** When set, the confirm button stays disabled until the user types this exactly. */
+  confirmMatch?: string;
 }
 
 interface ConfirmContextValue {
@@ -65,6 +68,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           confirmLabel={dialog.confirmLabel ?? "Confirm"}
           cancelLabel={dialog.cancelLabel ?? "Cancel"}
           variant={dialog.variant ?? "destructive"}
+          confirmMatch={dialog.confirmMatch}
           onCancel={() => close(false)}
           onConfirm={() => close(true)}
         />
@@ -79,6 +83,7 @@ function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   variant,
+  confirmMatch,
   onCancel,
   onConfirm,
 }: {
@@ -87,13 +92,17 @@ function ConfirmDialog({
   confirmLabel: string;
   cancelLabel: string;
   variant: "destructive" | "default";
+  confirmMatch?: string;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
   const titleId = useId();
   const descriptionId = useId();
+  const inputId = useId();
   const cancelRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [typed, setTyped] = useState("");
+  const matches = !confirmMatch || typed === confirmMatch;
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -109,7 +118,7 @@ function ConfirmDialog({
         return;
       }
       const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-        "button:not([disabled])",
+        'button:not([disabled]), input:not([disabled]), [href], select, textarea',
       );
       if (focusable.length === 0) {
         return;
@@ -172,6 +181,21 @@ function ConfirmDialog({
             </p>
           </div>
         </div>
+        {confirmMatch && (
+          <div className="mt-4 space-y-1.5">
+            <label htmlFor={inputId} className="text-sm text-foreground">
+              Type <span className="font-mono font-semibold">{confirmMatch}</span> to confirm
+            </label>
+            <Input
+              id={inputId}
+              autoComplete="off"
+              autoFocus
+              value={typed}
+              onChange={(event) => setTyped(event.target.value)}
+              placeholder={confirmMatch}
+            />
+          </div>
+        )}
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button ref={cancelRef} type="button" variant="outline" onClick={onCancel}>
             {cancelLabel}
@@ -179,6 +203,7 @@ function ConfirmDialog({
           <Button
             type="button"
             variant={variant === "destructive" ? "destructive" : "default"}
+            disabled={!matches}
             onClick={onConfirm}
           >
             {confirmLabel}

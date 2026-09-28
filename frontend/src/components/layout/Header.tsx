@@ -14,9 +14,11 @@ interface PageHeaderProps {
   description?: string;
   breadcrumbs?: BreadcrumbItem[];
   actions?: ReactNode;
+  /** Rendered flush under the title row, e.g. section tabs. */
+  tabs?: ReactNode;
 }
 
-export function Header({ title, description, breadcrumbs, actions }: PageHeaderProps) {
+export function Header({ title, description, breadcrumbs, actions, tabs }: PageHeaderProps) {
   return (
     <header className="sticky top-0 z-10 shrink-0 border-b border-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div
@@ -65,6 +67,7 @@ export function Header({ title, description, breadcrumbs, actions }: PageHeaderP
         </div>
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
+      {tabs && <div className={cn("-mt-1", pagePaddingX)}>{tabs}</div>}
     </header>
   );
 }

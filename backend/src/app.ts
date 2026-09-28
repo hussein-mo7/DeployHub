@@ -1,3 +1,4 @@
+import path from "path";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -31,7 +32,11 @@ app.post(
 app.use(express.json());
 app.use(cookieParser());
 
-app.get("/", (_req, res) => {
+app.get("/", (_req, res, next) => {
+  if (env.NODE_ENV === "production") {
+    next();
+    return;
+  }
   res.json({ name: "DeployHub API", version: "0.1.0" });
 });
 
@@ -44,5 +49,22 @@ app.use("/api/agents", agentsRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/projects/:projectId/environments", projectDeploymentRoutes);
 app.use("/api/deployments", deploymentsRoutes);
+
+if (env.NODE_ENV === "production") {
+  // Repo root when started via `npm run start` (WorkingDirectory = project root on VPS).
+  const frontendDist = path.resolve(process.cwd(), "frontend/dist");
+  app.use(express.static(frontendDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) {
+      next();
+      return;
+    }
+    res.sendFile(path.join(frontendDist, "index.html"), (err) => {
+      if (err) {
+        next(err);
+      }
+    });
+  });
+}
 
 app.use(errorMiddleware);
