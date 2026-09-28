@@ -14,6 +14,7 @@ import { formatDateTime } from "@/lib/format-date";
 import { changePasswordSchema, updateProfileSchema } from "@/lib/validations/auth.schema";
 import { ROUTES } from "@/constants/routes";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { toastApiError, toastSuccess } from "@/lib/toast";
 import * as authService from "@/services/auth.service";
 import * as githubService from "@/services/github.service";
 import { useAuthStore } from "@/stores/auth.store";
@@ -75,6 +76,7 @@ export function SettingsPage() {
   useEffect(() => {
     if (searchParams.get("github") === "connected") {
       setBanner("GitHub connected successfully.");
+      toastSuccess("GitHub connected successfully.");
       if (section !== "integrations") {
         navigate(ROUTES.SETTINGS_INTEGRATIONS, { replace: true });
       }
@@ -111,7 +113,9 @@ export function SettingsPage() {
       window.location.href = url;
     },
     onError: (err) => {
-      setActionError(getApiErrorMessage(err, "Could not start GitHub install"));
+      const message = getApiErrorMessage(err, "Could not start GitHub install");
+      setActionError(message);
+      toastApiError(err, "Could not start GitHub install");
     },
   });
 
@@ -119,11 +123,14 @@ export function SettingsPage() {
     mutationFn: githubService.disconnectGitHub,
     onSuccess: () => {
       setActionError(null);
+      toastSuccess("GitHub disconnected.");
       void queryClient.invalidateQueries({ queryKey: integrationQueryKey });
       void queryClient.removeQueries({ queryKey: reposQueryKey });
     },
     onError: (err) => {
-      setActionError(getApiErrorMessage(err, "Failed to disconnect GitHub"));
+      const message = getApiErrorMessage(err, "Failed to disconnect GitHub");
+      setActionError(message);
+      toastApiError(err, "Failed to disconnect GitHub");
     },
   });
 
@@ -141,8 +148,11 @@ export function SettingsPage() {
     try {
       await updateProfile(parsed.data);
       setProfileSuccess("Profile updated.");
+      toastSuccess("Profile updated.");
     } catch (err) {
-      setProfileError(getApiErrorMessage(err, "Failed to update profile"));
+      const message = getApiErrorMessage(err, "Failed to update profile");
+      setProfileError(message);
+      toastApiError(err, message);
     }
   };
 
@@ -177,7 +187,9 @@ export function SettingsPage() {
         state: { message: "Password updated. Sign in with your new password." },
       });
     } catch (err) {
-      setPasswordError(getApiErrorMessage(err, "Failed to update password"));
+      const message = getApiErrorMessage(err, "Failed to update password");
+      setPasswordError(message);
+      toastApiError(err, message);
     } finally {
       setPasswordSaving(false);
     }

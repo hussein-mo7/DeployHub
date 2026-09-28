@@ -4,6 +4,7 @@ import { ROUTES } from "@/constants/routes";
 import { isUnauthorizedError } from "@/lib/api-errors";
 import { setSessionExpiredHandler } from "@/lib/session-expired";
 import { getProactiveRefreshIntervalMs } from "@/lib/session-refresh-interval";
+import { toastError } from "@/lib/toast";
 import { useAuthStore } from "@/stores/auth.store";
 
 export function SessionManager({ children }: { children: React.ReactNode }) {
@@ -21,11 +22,9 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
+      toastError("Your session expired. Please sign in again.");
       clearSession();
-      navigate(ROUTES.LOGIN, {
-        replace: true,
-        state: { message: "Your session expired. Please sign in again." },
-      });
+      navigate(ROUTES.LOGIN, { replace: true });
     });
     return () => setSessionExpiredHandler(null);
   }, [clearSession, navigate]);
@@ -40,11 +39,9 @@ export function SessionManager({ children }: { children: React.ReactNode }) {
         if (!isUnauthorizedError(error)) {
           return;
         }
+        toastError("Your session expired. Please sign in again.");
         clearSession();
-        navigate(ROUTES.LOGIN, {
-          replace: true,
-          state: { message: "Your session expired. Please sign in again." },
-        });
+        navigate(ROUTES.LOGIN, { replace: true });
       });
     };
 

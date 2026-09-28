@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { toastError, toastSuccess } from "@/lib/toast";
 import {
   joinServerBootstrapRoom,
   leaveServerBootstrapRoom,
@@ -78,10 +79,12 @@ export function ServerBootstrapPanel({
       }
       setRunning(false);
       if (event.status === "success") {
+        toastSuccess("Agent bootstrap finished. Waiting for agent to connect…");
         onCompleteRef.current?.();
       }
       if (event.status === "failed" && event.errorMessage) {
         setSubmitError(event.errorMessage);
+        toastError(event.errorMessage);
       }
     };
 
@@ -146,7 +149,9 @@ export function ServerBootstrapPanel({
       await serversService.bootstrapServer(serverId, parsed.data);
     } catch (err) {
       setRunning(false);
-      setSubmitError(getApiErrorMessage(err, "Failed to start bootstrap"));
+      const message = getApiErrorMessage(err, "Failed to start bootstrap");
+      setSubmitError(message);
+      toastError(message);
     }
   };
 

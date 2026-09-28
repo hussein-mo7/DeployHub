@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/constants/routes";
 import { loginSchema } from "@/lib/validations/auth.schema";
+import { toastApiError } from "@/lib/toast";
 import { useAuthStore, getAuthErrorCode } from "@/stores/auth.store";
 
 export function LoginPage() {
@@ -43,7 +44,9 @@ export function LoginPage() {
     } catch (err) {
       if (getAuthErrorCode(err) === "EMAIL_NOT_VERIFIED") {
         navigate(`${ROUTES.VERIFY_EMAIL_SENT}?email=${encodeURIComponent(result.data.email)}`);
+        return;
       }
+      toastApiError(err, "Sign in failed");
     }
   };
 
