@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ButtonSpinner } from "@/components/ui/loading-state";
 import { createServerSchema } from "@/lib/validations/servers.schema";
 
 interface CreateServerFormProps {
@@ -86,7 +87,14 @@ export function CreateServerForm({
 
           <div className="flex gap-2">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create server"}
+              {isSubmitting ? (
+                <>
+                  <ButtonSpinner className="mr-2" />
+                  Creating…
+                </>
+              ) : (
+                "Continue to install"
+              )}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancel

@@ -1,19 +1,19 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { PageLoadingState } from "@/components/ui/loading-state";
 import { DetailRow } from "@/components/layout/DetailRow";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
-import { ServerBootstrapPanel } from "@/components/servers/ServerBootstrapPanel";
+import { PublicApiUrlBanner } from "@/components/servers/PublicApiUrlBanner";
 import { ServerSetupPanel } from "@/components/servers/ServerSetupPanel";
 import { ServerStatusBadge } from "@/components/servers/ServerStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROUTES } from "@/constants/routes";
+import { ROUTES, serverSetupPath } from "@/constants/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatDateTime, formatDistanceToNow } from "@/lib/format-date";
 import { updateServerSchema } from "@/lib/validations/servers.schema";
@@ -156,7 +156,10 @@ export function ServerDetailPage() {
   const isDirty =
     editForm.name !== server.name || editForm.description !== (server.description ?? "");
 
-  const showSetupHint = server.status === "UNREGISTERED" || server.status === "OFFLINE";
+  const needsAgentSetup =
+    server.status === "UNREGISTERED" ||
+    server.status === "OFFLINE" ||
+    server.status === "CONNECTING";
 
   return (
     <>
@@ -178,37 +181,27 @@ export function ServerDetailPage() {
             </div>
           )}
 
-          {server.status === "CONNECTING" && (
-            <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-foreground">
-              Agent install in progress or waiting for the agent to connect. Status refreshes
-              automatically.
-            </div>
-          )}
-
-          {server.status !== "ONLINE" && (
-            <ServerBootstrapPanel
-              serverId={server.id}
-              initialHost={server.sshHost}
-              initialPort={server.sshPort}
-              initialUser={server.sshUser}
-              onComplete={() => {
-                void queryClient.invalidateQueries({ queryKey: serverQueryKey(id) });
-                void queryClient.invalidateQueries({ queryKey: ["servers"] });
-              }}
-            />
-          )}
-
-          {showSetupHint && !setupInfo && server.status === "UNREGISTERED" && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
-              Prefer manual install? Regenerate a token below if your install link expired.
+          {needsAgentSetup && (
+            <div className="rounded-lg border border-primary/25 bg-primary/5 px-4 py-4 text-sm">
+              <p className="font-medium text-foreground">Agent setup incomplete</p>
+              <p className="mt-1 text-muted-foreground">
+                Install the agent via SSH or manual install, then wait for status{" "}
+                <strong className="font-medium text-foreground">Online</strong>.
+              </p>
+              <Button className="mt-3" size="sm" asChild>
+                <Link to={serverSetupPath(server.id)}>Continue setup wizard</Link>
+              </Button>
             </div>
           )}
 
           {setupInfo && (
-            <ServerSetupPanel
-              setup={setupInfo}
-              onDismiss={() => setSetupInfo(null)}
-            />
+            <>
+              <PublicApiUrlBanner className="mb-4" />
+              <ServerSetupPanel
+                setup={setupInfo}
+                onDismiss={() => setSetupInfo(null)}
+              />
+            </>
           )}
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

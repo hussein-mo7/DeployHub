@@ -12,7 +12,9 @@ import { DeploymentsPage } from "@/pages/deployments/DeploymentsPage";
 import { SettingsPage } from "@/pages/settings/SettingsPage";
 import { ProjectDetailPage } from "@/pages/projects/ProjectDetailPage";
 import { ProjectsPage } from "@/pages/projects/ProjectsPage";
+import { NewServerPage } from "@/pages/servers/NewServerPage";
 import { ServerDetailPage } from "@/pages/servers/ServerDetailPage";
+import { ServerSetupPage } from "@/pages/servers/ServerSetupPage";
 import { ServersPage } from "@/pages/servers/ServersPage";
 import { ProtectedRoute, PublicRoute } from "@/routes/ProtectedRoute";
 
@@ -34,6 +36,8 @@ export function AppRoutes() {
           <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
           <Route path={ROUTES.SERVERS} element={<ServersPage />} />
+          <Route path={ROUTES.SERVER_NEW} element={<NewServerPage />} />
+          <Route path={ROUTES.SERVER_SETUP} element={<ServerSetupPage />} />
           <Route path={ROUTES.SERVER_DETAIL} element={<ServerDetailPage />} />
           <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
           <Route path={ROUTES.PROJECT_DETAIL} element={<ProjectDetailPage />} />

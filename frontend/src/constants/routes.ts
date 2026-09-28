@@ -8,6 +8,8 @@ export const ROUTES = {
   RESET_PASSWORD: "/reset-password",
   DASHBOARD: "/dashboard",
   SERVERS: "/servers",
+  SERVER_NEW: "/servers/new",
+  SERVER_SETUP: "/servers/:id/setup",
   SERVER_DETAIL: "/servers/:id",
   PROJECTS: "/projects",
   PROJECT_DETAIL: "/projects/:id",
@@ -20,6 +22,17 @@ export const ROUTES = {
 
 export function serverDetailPath(id: string): string {
   return `/servers/${id}`;
+}
+
+export function serverSetupPath(id: string): string {
+  return `/servers/${id}/setup`;
+}
+
+/** List/detail links: unfinished servers open the setup wizard. */
+export function serverPrimaryPath(server: { id: string; status: string }): string {
+  return server.status === "ONLINE" || server.status === "UNHEALTHY"
+    ? serverDetailPath(server.id)
+    : serverSetupPath(server.id);
 }
 
 export function projectDetailPath(id: string): string {

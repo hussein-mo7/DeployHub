@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import type { ServerSummary } from "@/types/servers.types";
 import { ChevronRight, Plus, Server } from "lucide-react";
 import { Link } from "react-router-dom";
-import { serverDetailPath } from "@/constants/routes";
+import { ROUTES, serverPrimaryPath } from "@/constants/routes";
 
 interface ServerListProps {
   servers: ServerSummary[];
-  onAddServer?: () => void;
 }
 
 function lastSeenLabel(server: ServerSummary): string {
@@ -22,20 +21,20 @@ function lastSeenLabel(server: ServerSummary): string {
   return "Awaiting agent";
 }
 
-export function ServerList({ servers, onAddServer }: ServerListProps) {
+export function ServerList({ servers }: ServerListProps) {
   if (servers.length === 0) {
     return (
       <EmptyState
         icon={Server}
         title="No servers yet"
-        description="Register a Linux VPS, run the install command, and connect the DeployHub agent."
+        description="Add a VPS, install the agent via SSH, and wait until status shows Online."
         action={
-          onAddServer ? (
-            <Button onClick={onAddServer}>
+          <Button asChild>
+            <Link to={ROUTES.SERVER_NEW}>
               <Plus className="h-4 w-4" />
               Add your first server
-            </Button>
-          ) : undefined
+            </Link>
+          </Button>
         }
       />
     );
@@ -47,7 +46,7 @@ export function ServerList({ servers, onAddServer }: ServerListProps) {
         {servers.map((server) => (
           <li key={server.id}>
             <Link
-              to={serverDetailPath(server.id)}
+              to={serverPrimaryPath(server)}
               className="flex items-center justify-between gap-3 rounded-lg border bg-card p-4 shadow-sm transition-colors hover:bg-muted/30"
             >
               <div className="min-w-0">
@@ -84,7 +83,7 @@ export function ServerList({ servers, onAddServer }: ServerListProps) {
               <tr key={server.id} className="border-b last:border-0 hover:bg-muted/30">
                 <td className="px-4 py-3">
                   <Link
-                    to={serverDetailPath(server.id)}
+                    to={serverPrimaryPath(server)}
                     className="font-medium text-foreground hover:text-primary hover:underline"
                   >
                     {server.name}
@@ -99,7 +98,7 @@ export function ServerList({ servers, onAddServer }: ServerListProps) {
                 <td className="px-4 py-3 text-xs text-muted-foreground">{lastSeenLabel(server)}</td>
                 <td className="px-2 py-3">
                   <Link
-                    to={serverDetailPath(server.id)}
+                    to={serverPrimaryPath(server)}
                     className="inline-flex text-muted-foreground hover:text-foreground"
                     aria-label={`Open ${server.name}`}
                   >

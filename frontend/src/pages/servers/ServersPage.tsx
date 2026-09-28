@@ -1,16 +1,14 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { ListLoadingSkeleton } from "@/components/ui/loading-state";
 import { Header } from "@/components/layout/Header";
 import { PageContent } from "@/components/layout/PageContent";
-import { CreateServerForm } from "@/components/servers/CreateServerForm";
 import { ServerList, ServerListSummary } from "@/components/servers/ServerList";
-import { ServerSetupPanel } from "@/components/servers/ServerSetupPanel";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/routes";
 import { getApiErrorMessage } from "@/lib/api-error";
 import * as serversService from "@/services/servers.service";
-import type { ServerSetupInfo } from "@/types/servers.types";
 
 const SERVERS_QUERY_KEY = ["servers"];
 
@@ -22,32 +20,10 @@ function shouldPollStatuses(servers: { status: string }[] | undefined): number |
 }
 
 export function ServersPage() {
-  const queryClient = useQueryClient();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [setupInfo, setSetupInfo] = useState<ServerSetupInfo | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null);
-
   const { data, isLoading, isError, error } = useQuery({
     queryKey: SERVERS_QUERY_KEY,
     queryFn: serversService.listServers,
     refetchInterval: (query) => shouldPollStatuses(query.state.data?.servers),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: serversService.createServer,
-    onSuccess: (result) => {
-      setSetupInfo({
-        registrationToken: result.registrationToken,
-        installCommand: result.installCommand,
-        expiresAt: result.expiresAt,
-      });
-      setShowCreateForm(false);
-      setCreateError(null);
-      void queryClient.invalidateQueries({ queryKey: SERVERS_QUERY_KEY });
-    },
-    onError: (err) => {
-      setCreateError(getApiErrorMessage(err, "Failed to create server"));
-    },
   });
 
   const servers = data?.servers ?? [];
@@ -58,12 +34,12 @@ export function ServersPage() {
         title="Servers"
         description="Register Linux VPS targets and keep DeployHub agents connected."
         actions={
-          !showCreateForm ? (
-            <Button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto">
+          <Button asChild className="w-full sm:w-auto">
+            <Link to={ROUTES.SERVER_NEW}>
               <Plus className="h-4 w-4" />
               Add server
-            </Button>
-          ) : undefined
+            </Link>
+          </Button>
         }
       />
 
@@ -71,29 +47,6 @@ export function ServersPage() {
         <PageContent>
           {!isLoading && !isError && servers.length > 0 && (
             <ServerListSummary servers={servers} />
-          )}
-
-          {setupInfo && (
-            <ServerSetupPanel
-              title="Server created — install the agent"
-              setup={setupInfo}
-              onDismiss={() => setSetupInfo(null)}
-            />
-          )}
-
-          {showCreateForm && (
-            <CreateServerForm
-              onSubmit={async (values) => {
-                setCreateError(null);
-                await createMutation.mutateAsync(values);
-              }}
-              onCancel={() => {
-                setShowCreateForm(false);
-                setCreateError(null);
-              }}
-              isSubmitting={createMutation.isPending}
-              error={createError}
-            />
           )}
 
           {isLoading && <ListLoadingSkeleton rows={3} />}
@@ -104,12 +57,7 @@ export function ServersPage() {
             </p>
           )}
 
-          {!isLoading && !isError && (
-            <ServerList
-              servers={servers}
-              onAddServer={!showCreateForm ? () => setShowCreateForm(true) : undefined}
-            />
-          )}
+          {!isLoading && !isError && <ServerList servers={servers} />}
         </PageContent>
       </div>
     </>

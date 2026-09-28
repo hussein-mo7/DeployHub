@@ -153,7 +153,7 @@ export function DashboardPage() {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
                 <Button asChild>
-                  <Link to={ROUTES.SERVERS}>
+                  <Link to={ROUTES.SERVER_NEW}>
                     <Plus className="h-4 w-4" />
                     Add server
                   </Link>
