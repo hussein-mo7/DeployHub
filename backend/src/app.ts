@@ -1,5 +1,4 @@
 import path from "path";
-import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -52,11 +51,8 @@ app.use("/api/projects/:projectId/environments", projectDeploymentRoutes);
 app.use("/api/deployments", deploymentsRoutes);
 
 if (env.NODE_ENV === "production") {
-  // Monorepo: UI lives at repoRoot/frontend/dist (not cwd — npm -w backend uses backend/ as cwd).
-  const frontendDist = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../../frontend/dist",
-  );
+  // backend/dist/app.js → repo root → frontend/dist (npm -w backend cwd is backend/, not repo root)
+  const frontendDist = path.resolve(__dirname, "../../frontend/dist");
   app.use(express.static(frontendDist));
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) {
