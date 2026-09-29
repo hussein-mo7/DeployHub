@@ -3,9 +3,10 @@
 
 services:
   postgres:
-    ports:
+    # Replace base compose ports (merge would append and double-bind the host port).
+    ports: !override
       - "127.0.0.1:5432:5432"
 
   redis:
-    ports:
+    ports: !override
       - "127.0.0.1:6379:6379"
