@@ -4,8 +4,7 @@ import type { AuthResponse, MessageResponse, RegisterResponse } from "@/types/au
 import type { LoginForm, RegisterForm } from "@/lib/validations/auth.schema";
 
 export async function register(data: RegisterForm): Promise<RegisterResponse> {
-  const { confirmPassword: _, ...payload } = data;
-  const response = await api.post<RegisterResponse>("/auth/register", payload);
+  const response = await api.post<RegisterResponse>("/auth/register", data);
   return response.data;
 }
 
