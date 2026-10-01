@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TableLoadingSkeleton } from "@/components/ui/loading-state";
+import { looksSensitiveEnvKey } from "@/lib/parse-dotenv";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { toastSuccess } from "@/lib/toast";
@@ -20,7 +21,7 @@ const SECRET_MASK_DISPLAY = "••••••••";
 const emptyRow = (): EnvVariableDraft => ({
   key: "",
   value: "",
-  isSecret: true,
+  isSecret: false,
 });
 
 function variablesToDrafts(
@@ -32,17 +33,14 @@ function variablesToDrafts(
     return [emptyRow()];
   }
 
-  return variables.map((variable) => {
-    const encrypted = variable.isSecret || variable.hasValue;
-    return {
-      id: variable.id,
-      key: variable.key,
-      value: variable.isSecret ? "" : (variable.value ?? ""),
-      isSecret: true,
-      maskedValue: variable.maskedValue,
-      hasStoredSecret: encrypted && variable.hasValue,
-    };
-  });
+  return variables.map((variable) => ({
+    id: variable.id,
+    key: variable.key,
+    value: variable.isSecret ? "" : (variable.value ?? ""),
+    isSecret: variable.isSecret,
+    maskedValue: variable.maskedValue,
+    hasStoredSecret: variable.isSecret && variable.hasValue,
+  }));
 }
 
 function snapshotRows(rows: EnvVariableDraft[]): string {
@@ -113,7 +111,7 @@ export function EnvironmentVariablesPanel({
           .map((row) => ({
             key: row.key.trim(),
             ...(row.value.trim() ? { value: row.value } : {}),
-            isSecret: true,
+            isSecret: row.isSecret,
           })),
         redeploy,
       };
@@ -161,7 +159,16 @@ export function EnvironmentVariablesPanel({
         if (rowIndex !== index) {
           return row;
         }
-        const next = { ...row, ...patch, isSecret: true };
+        const next = { ...row, ...patch };
+        if (patch.key !== undefined) {
+          const trimmedKey = patch.key.trim();
+          if (trimmedKey && patch.isSecret === undefined) {
+            next.isSecret = looksSensitiveEnvKey(trimmedKey);
+          }
+        }
+        if (patch.isSecret !== undefined) {
+          next.isSecret = patch.isSecret;
+        }
         if (patch.value !== undefined && patch.value.trim()) {
           next.hasStoredSecret = false;
         }
@@ -231,8 +238,8 @@ export function EnvironmentVariablesPanel({
           )}
           <p className="text-sm text-muted-foreground">
             {embedded
-              ? "All values are encrypted at rest. Edit keys or values, then save — nothing is sent until you click Save."
-              : `Runtime config for ${environmentName}. Values are encrypted — use the eye icon to reveal.`}
+              ? "Secret values are encrypted at rest. Plain config (e.g. MONGODB_DB) stays readable after save."
+              : `Runtime config for ${environmentName}. Secret values are masked — use the eye icon to reveal.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -310,6 +317,7 @@ export function EnvironmentVariablesPanel({
                   <tr className="border-b bg-muted/40 text-left text-xs text-muted-foreground">
                     <th className="px-3 py-2.5 font-medium">Key</th>
                     <th className="px-3 py-2.5 font-medium">Value</th>
+                    <th className="w-16 px-2 py-2.5 text-center font-medium">Secret</th>
                     <th className="w-12 px-2 py-2.5" aria-label="Actions" />
                   </tr>
                 </thead>
@@ -377,6 +385,14 @@ export function EnvironmentVariablesPanel({
                           {fieldErrors[index] && (
                             <p className="mt-1 text-xs text-destructive">{fieldErrors[index]}</p>
                           )}
+                        </td>
+                        <td className="px-2 py-2 align-top text-center">
+                          <input
+                            type="checkbox"
+                            checked={row.isSecret}
+                            aria-label={`Mark ${row.key || "variable"} as secret`}
+                            onChange={(e) => updateRow(index, { isSecret: e.target.checked })}
+                          />
                         </td>
                         <td className="px-2 py-2 align-top">
                           <Button

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { FileUp, Upload } from "lucide-react";
+import { Eye, EyeOff, FileUp, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   dedupeParsedEntries,
@@ -25,7 +25,8 @@ export function EnvironmentVariablesBulkImport({
   const [raw, setRaw] = useState("");
   const [preview, setPreview] = useState<ParsedEnvEntry[] | null>(null);
   const [secretFlags, setSecretFlags] = useState<Record<string, boolean>>({});
-  const [markAllSecret, setMarkAllSecret] = useState(true);
+  const [markAllSecret, setMarkAllSecret] = useState(false);
+  const [revealedKeys, setRevealedKeys] = useState<Record<string, boolean>>({});
   const [parseError, setParseError] = useState<string | null>(null);
 
   const existingKeySet = useMemo(() => new Set(existingKeys.map((k) => k.trim())), [existingKeys]);
@@ -56,7 +57,12 @@ export function EnvironmentVariablesBulkImport({
       flags[row.key] = markAllSecret || row.isSecret;
     }
     setSecretFlags(flags);
+    setRevealedKeys({});
     setPreview(valid);
+  };
+
+  const toggleRevealKey = (key: string) => {
+    setRevealedKeys((current) => ({ ...current, [key]: !current[key] }));
   };
 
   const previewRows = preview ?? [];
@@ -85,7 +91,7 @@ export function EnvironmentVariablesBulkImport({
       preview.map((row) => ({
         key: row.key,
         value: row.value,
-        isSecret: secretFlags[row.key] ?? true,
+        isSecret: secretFlags[row.key] ?? row.isSecret,
       })),
     );
   };
@@ -134,7 +140,7 @@ export function EnvironmentVariablesBulkImport({
             checked={markAllSecret}
             onChange={(e) => setMarkAllSecret(e.target.checked)}
           />
-          Mark imported values as secret
+          Mark all as secret (overrides auto-detect)
         </label>
       </div>
 
@@ -156,6 +162,10 @@ export function EnvironmentVariablesBulkImport({
           <p className="text-sm font-medium text-foreground">
             Preview — {previewRows.length} variable{previewRows.length === 1 ? "" : "s"}
           </p>
+          <p className="text-xs text-muted-foreground">
+            Values stay in your browser until you import and save. Use the eye icon to verify
+            pasted values. Secret keys (passwords, tokens, API keys) are checked by default.
+          </p>
           <div className="max-h-64 overflow-auto rounded-md border">
             <table className="w-full min-w-[420px] text-xs">
               <thead>
@@ -169,11 +179,40 @@ export function EnvironmentVariablesBulkImport({
               <tbody>
                 {previewRows.map((row) => {
                   const overwrite = existingKeySet.has(row.key);
+                  const revealed = revealedKeys[row.key] === true;
+                  const displayValue = !row.value
+                    ? "(empty)"
+                    : revealed
+                      ? row.value
+                      : "••••••••";
                   return (
                     <tr key={row.key} className="border-b last:border-0">
                       <td className="px-2 py-2 font-mono">{row.key}</td>
-                      <td className="max-w-[200px] truncate px-2 py-2 font-mono text-muted-foreground">
-                        {row.value ? "••••••••" : "(empty)"}
+                      <td className="max-w-[240px] px-2 py-2">
+                        <div className="flex items-center gap-1">
+                          <span
+                            className="min-w-0 flex-1 truncate font-mono text-muted-foreground"
+                            title={revealed ? row.value : undefined}
+                          >
+                            {displayValue}
+                          </span>
+                          {row.value ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 shrink-0"
+                              aria-label={revealed ? "Hide value" : "Reveal value"}
+                              onClick={() => toggleRevealKey(row.key)}
+                            >
+                              {revealed ? (
+                                <EyeOff className="h-3.5 w-3.5" />
+                              ) : (
+                                <Eye className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex flex-col gap-0.5">
@@ -190,7 +229,7 @@ export function EnvironmentVariablesBulkImport({
                       <td className="px-2 py-2">
                         <input
                           type="checkbox"
-                          checked={secretFlags[row.key] ?? true}
+                          checked={secretFlags[row.key] ?? row.isSecret}
                           onChange={(e) =>
                             setSecretFlags((current) => ({
                               ...current,
@@ -259,5 +298,5 @@ export function mergeEnvImportIntoDrafts(
   }
 
   const merged = Array.from(map.values());
-  return merged.length > 0 ? merged : [{ key: "", value: "", isSecret: true }];
+  return merged.length > 0 ? merged : [{ key: "", value: "", isSecret: false }];
 }
