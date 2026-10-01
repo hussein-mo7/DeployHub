@@ -42,7 +42,7 @@ function runSshBootstrap(data: BootstrapJobData): Promise<void> {
     `export REGISTRATION_TOKEN=${shellSingleQuote(data.registrationToken)}`,
     `export AGENT_DOCKER_IMAGE=${shellSingleQuote(agentImage)}`,
     "bash -s",
-  ].join(" ");
+  ].join("; ");
 
   return new Promise((resolve, reject) => {
     const conn = new Client();
