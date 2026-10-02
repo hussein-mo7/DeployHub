@@ -51,7 +51,9 @@ export async function runServiceHealthCheck(
   }
 
   const path = normalizePath(service.healthCheckPath);
-  const url = `http://127.0.0.1:${port}${path === "/" ? "/" : path}`;
+  /** Agent in Docker must hit the host publish address, not the agent container loopback. */
+  const host = process.env.HEALTH_CHECK_HOST?.trim() || "127.0.0.1";
+  const url = `http://${host}:${port}${path === "/" ? "/" : path}`;
 
   log(`Health check: GET ${url} (up to ${DEFAULT_ATTEMPTS} attempts)...`);
 

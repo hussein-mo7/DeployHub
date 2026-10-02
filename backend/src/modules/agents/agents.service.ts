@@ -92,6 +92,7 @@ if command -v docker >/dev/null 2>&1; then
   docker pull ${agentImage}
   docker rm -f deployhub-agent 2>/dev/null || true
   docker run -d --name deployhub-agent --restart unless-stopped \\
+    --add-host=host.docker.internal:host-gateway \\
     -v /var/run/docker.sock:/var/run/docker.sock \\
     --env-file /etc/deployhub/agent.env \\
     ${agentImage}
@@ -99,7 +100,7 @@ if command -v docker >/dev/null 2>&1; then
 else
   echo "Docker not found. Install Docker, then run:"
   echo "  docker pull ${agentImage}"
-  echo "  docker run -d --name deployhub-agent --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock --env-file /etc/deployhub/agent.env ${agentImage}"
+  echo "  docker run -d --name deployhub-agent --restart unless-stopped --add-host=host.docker.internal:host-gateway -v /var/run/docker.sock:/var/run/docker.sock --env-file /etc/deployhub/agent.env ${agentImage}"
 fi`
       : `
 echo "Set AGENT_DOCKER_IMAGE on the control plane for automatic docker run, or see docs/OPERATIONS.md"`;
@@ -132,6 +133,7 @@ cat > /etc/deployhub/agent.env <<EOF
 CONTROL_PLANE_URL=$CONTROL_PLANE_URL
 AGENT_TOKEN=$AGENT_TOKEN
 NODE_ENV=production
+HEALTH_CHECK_HOST=host.docker.internal
 EOF
 
 echo "Agent registered for server: $SERVER_ID"
