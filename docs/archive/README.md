@@ -1,8 +1,3 @@
-# Archived documentation
+# Archive
 
-Historical snapshots — not updated for current sprint work.
-
-| File | Superseded by |
-|------|----------------|
-| [MVP-PROGRESS.md](./MVP-PROGRESS.md) | MVP shipped; see root README status |
-| [V2-QA-REPORT.md](./V2-QA-REPORT.md) | [PRODUCT-IMPROVEMENT-PLAN.md](../PRODUCT-IMPROVEMENT-PLAN.md), [BROWSER-SMOKE-CHECKLIST.md](../BROWSER-SMOKE-CHECKLIST.md) |
+Historical MVP checklists were removed to keep the repo portfolio-focused. Use [`../TESTING.md`](../TESTING.md) and [`../../SRS.md`](../../SRS.md) for current verification.

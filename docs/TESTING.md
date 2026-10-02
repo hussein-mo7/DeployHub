@@ -21,9 +21,9 @@ npm run worker
 | `baseUrl` | `http://localhost:3001` |
 | Frontend | `http://localhost:5173` |
 
-**Postman:** Collection **DeployHub API** · Environment **DeployHub Local**
+**Postman:** Import from [`../postman/`](../postman/) — **DeployHub API** collection + **DeployHub Local (example)** environment (duplicate before use).
 
-Your test account is saved in environment variables (`testName`, `testEmail`, `testPassword`, `testConfirmPassword`) — no hardcoded credentials in requests.
+Your test account lives in environment variables (`testName`, `testEmail`, `testPassword`, `testConfirmPassword`) — no hardcoded credentials in requests.
 
 **Before Phase 3 or 4:** run **0 — Session → Login** once (sets HTTP-only cookies). Login is not repeated in each phase folder.
 
@@ -773,8 +773,6 @@ MVP is **done** when all five scenarios pass. Mix **browser UI** and **Postman**
 2. **Deployments** — global recent list + expandable logs.
 3. **Settings** — account + GitHub connect/disconnect + repo sample list.
 4. **Auth** — login/register/verify in browser (same account as Postman).
-
-Check each box in [archive/MVP-PROGRESS.md](./archive/MVP-PROGRESS.md) Phase 11 when verified.
 
 **Phase 11 pass:** All five scenario rows satisfied + UI pages usable without placeholders (Settings + Deployments + Dashboard).
 

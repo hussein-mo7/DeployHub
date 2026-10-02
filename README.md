@@ -46,6 +46,17 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full system design.
 
 ---
 
+## Live demo
+
+| | |
+|---|---|
+| **Control panel** | [https://deployhub.enghussein.me](https://deployhub.enghussein.me) |
+| **API health** | [https://deployhub.enghussein.me/api/health](https://deployhub.enghussein.me/api/health) |
+
+Self-hosted control plane on a VPS; target apps deploy to separate servers via the agent.
+
+---
+
 ## Quick start (local)
 
 1. **Node 20+**, **Docker** — see `.nvmrc`
@@ -103,6 +114,7 @@ Optional: record with [`docs/DEMO-SCRIPT.md`](./docs/DEMO-SCRIPT.md), then add U
 | [**docs/OPERATIONS.md**](./docs/OPERATIONS.md) | VPS, GHCR, `PUBLIC_API_URL` |
 | [**docs/RELEASE-2.0.md**](./docs/RELEASE-2.0.md) | 2.0 scope snapshot |
 | [**docs/TESTING.md**](./docs/TESTING.md) | Postman API phases |
+| [**postman/**](./postman/) | Importable Postman collection + example env |
 | [**docs/BROWSER-SMOKE-CHECKLIST.md**](./docs/BROWSER-SMOKE-CHECKLIST.md) | Browser E2E |
 | [**docs/DESIGN.md**](./docs/DESIGN.md) | UI guidelines |
 
@@ -117,8 +129,11 @@ DeployHub/
 ├── frontend/           # React dashboard
 ├── backend/            # Express API + BullMQ workers
 ├── agent/              # VPS deployment agent
-├── docs/               # Operations, testing, improvement plan
-├── docker-compose.yml  # Local Redis
+├── postman/            # Postman collection (committed) + example environment
+├── docs/               # Operations, testing, design
+├── scripts/            # VPS bootstrap (SSH)
+├── docker-compose.yml  # Local Postgres + Redis (dev)
+├── docker-compose.prod.yml
 ├── ARCHITECTURE.md
 ├── ROADMAP.md
 └── SRS.md

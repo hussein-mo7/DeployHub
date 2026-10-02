@@ -50,10 +50,9 @@ backend/prisma/*.db-journal
 .cache/
 trace*.txt
 
-# Postman (local only — never push to GitHub)
-postman/
-*.postman_collection.json
-*.postman_environment.json
+# Postman — committed templates live in postman/; keep personal env local
+postman/*-local.postman_environment.json
+postman/DeployHub-Local.postman_environment.json
 
 # Cursor MCP config with secrets (use mcp.json.example as template)
 .cursor/mcp.json

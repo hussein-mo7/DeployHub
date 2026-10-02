@@ -28,4 +28,4 @@
 
 ## Archive
 
-| [archive/](./archive/) | MVP progress & old QA report (historical) |
+| [archive/](./archive/) | Historical notes (see README there) |

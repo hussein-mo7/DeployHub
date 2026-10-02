@@ -1,0 +1,731 @@
+{
+  "info": {
+    "name": "DeployHub API",
+    "description": "DeployHub REST API — cookie auth, phased tests. Import DeployHub-Local.example.postman_environment.json and set your credentials. See docs/TESTING.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    }
+  ],
+  "item": [
+    {
+      "name": "0 — Session",
+      "item": [
+        {
+          "name": "0.1 Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Sets HTTP-only cookies. Run before protected APIs.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "0.2 Refresh session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/refresh",
+            "description": ""
+          }
+        },
+        {
+          "name": "0.3 Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 1 — Foundation",
+      "item": [
+        {
+          "name": "1.1 Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health",
+            "description": ""
+          }
+        },
+        {
+          "name": "1.2 API root (dev)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/",
+            "description": "404 in production when SPA is served."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2 — Auth",
+      "item": [
+        {
+          "name": "2.1 Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testName}}\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"confirmPassword\": \"{{testConfirmPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.2 Verify email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/verify-email",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.3 Resend verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/resend-verification",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.4 Get me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": ""
+          }
+        },
+        {
+          "name": "2.5 Patch profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{testName}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.6 Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/forgot-password",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.7 Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/reset-password",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"{{testPassword}}\",\n  \"confirmPassword\": \"{{testConfirmPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.8 Change password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/change-password",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{testPassword}}\",\n  \"newPassword\": \"{{testNewPassword}}\",\n  \"confirmNewPassword\": \"{{testNewPassword}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Release 2.0 — Config",
+      "item": [
+        {
+          "name": "2.0.1 Public config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/config/public",
+            "description": "No auth."
+          }
+        },
+        {
+          "name": "2.0.2 SSH bootstrap",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/servers/{{serverId}}/bootstrap",
+            "description": "Needs worker + AGENT_DOCKER_IMAGE. Prefer UI for logs.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"host\": \"{{bootstrapHost}}\",\n  \"port\": 22,\n  \"username\": \"{{bootstrapSshUser}}\",\n  \"authType\": \"privateKey\",\n  \"privateKey\": \"{{bootstrapPrivateKey}}\",\n  \"consent\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 3 — GitHub",
+      "item": [
+        {
+          "name": "3.1 Get install URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/github/install-url",
+            "description": ""
+          }
+        },
+        {
+          "name": "3.2 OAuth callback (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/github/callback?installation_id={{installationId}}&state={{githubState}}&format=json",
+            "description": ""
+          }
+        },
+        {
+          "name": "3.3 Integration status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/github/integration",
+            "description": ""
+          }
+        },
+        {
+          "name": "3.4 List repos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/github/repos?page=1&perPage=30",
+            "description": ""
+          }
+        },
+        {
+          "name": "3.5 List branches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/github/repos/{{repoOwner}}/{{repoName}}/branches",
+            "description": ""
+          }
+        },
+        {
+          "name": "3.6 Disconnect",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/github/integration",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 4 — Servers & Agent",
+      "item": [
+        {
+          "name": "4.1 Create server",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/servers",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My VPS\",\n  \"description\": \"Production server\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4.2 Register agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/agents/register",
+            "description": "No session cookies.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationToken\": \"{{registrationToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4.3 List servers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/servers",
+            "description": ""
+          }
+        },
+        {
+          "name": "4.4 Get server",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/servers/{{serverId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "4.5 Update server",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/servers/{{serverId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Renamed VPS\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4.6 Regenerate install token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/servers/{{serverId}}/regenerate-token",
+            "description": ""
+          }
+        },
+        {
+          "name": "4.7 Delete server",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/servers/{{serverId}}",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 5 — Projects",
+      "item": [
+        {
+          "name": "5.1 Create project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My App\",\n  \"description\": \"Demo app\",\n  \"repoOwner\": \"{{repoOwner}}\",\n  \"repoName\": \"{{repoName}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5.2 List projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects",
+            "description": ""
+          }
+        },
+        {
+          "name": "5.3 Get project",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "5.4 Create service (Dockerfile)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/services",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"web\",\n  \"deploymentMethod\": \"DOCKERFILE\",\n  \"dockerfilePath\": \"Dockerfile\",\n  \"buildContext\": \".\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5.5 Create service (Image)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/services",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"web\",\n  \"deploymentMethod\": \"IMAGE\",\n  \"imageName\": \"nginx:latest\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5.6 List services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/services",
+            "description": ""
+          }
+        },
+        {
+          "name": "5.7 Patch service port",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/services/{{serviceId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"port\": 3000,\n  \"healthCheckPath\": \"/\",\n  \"healthCheckEnabled\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "5.8 Create environment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Production\",\n  \"serverId\": \"{{serverId}}\",\n  \"branch\": \"main\",\n  \"autoDeployEnabled\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "5.9 List environments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments",
+            "description": ""
+          }
+        },
+        {
+          "name": "5.10 Get environment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "5.11 Delete environment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "5.12 Delete project",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 6 — Environment variables",
+      "item": [
+        {
+          "name": "6.1 List variables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables",
+            "description": ""
+          }
+        },
+        {
+          "name": "6.2 Save variables",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variables\": [\n    {\n      \"key\": \"NODE_ENV\",\n      \"value\": \"production\",\n      \"isSecret\": false\n    },\n    {\n      \"key\": \"API_KEY\",\n      \"value\": \"replace-me\",\n      \"isSecret\": true\n    }\n  ],\n  \"redeploy\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "6.3 Save & redeploy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variables\": [\n    {\n      \"key\": \"NODE_ENV\",\n      \"value\": \"production\",\n      \"isSecret\": false\n    }\n  ],\n  \"redeploy\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "6.4 Reveal secret",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/variables/{{variableId}}/reveal",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 7 — Deployments",
+      "item": [
+        {
+          "name": "7.1 Create deployment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/deployments",
+            "description": ""
+          }
+        },
+        {
+          "name": "7.2 List deployments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}/deployments",
+            "description": ""
+          }
+        },
+        {
+          "name": "7.3 Get deployment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/deployments/{{deploymentId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "7.4 Cancel deployment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/deployments/{{deploymentId}}/cancel",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 9 — Rollback",
+      "item": [
+        {
+          "name": "9.1 Rollback deployment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/deployments/{{deploymentId}}/rollback",
+            "description": "Use id of a SUCCESS deployment."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 10 — Webhook",
+      "item": [
+        {
+          "name": "10.1 Enable auto deploy",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autoDeployEnabled\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/environments/{{environmentId}}",
+            "description": "Environment branch must match webhook ref."
+          }
+        },
+        {
+          "name": "10.2 Simulate push webhook",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const secret = pm.environment.get('githubWebhookSecret');",
+                  "if (!secret) { throw new Error('Set githubWebhookSecret in environment'); }",
+                  "const owner = pm.environment.get('repoOwner');",
+                  "const repo = pm.environment.get('repoName');",
+                  "const installId = pm.environment.get('githubInstallationId') || '0';",
+                  "const body = JSON.stringify({",
+                  "  ref: 'refs/heads/main',",
+                  "  after: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',",
+                  "  repository: { full_name: owner + '/' + repo, name: repo },",
+                  "  installation: { id: Number(installId) }",
+                  "});",
+                  "pm.request.body.update(body);",
+                  "const sig = 'sha256=' + CryptoJS.HmacSHA256(body, secret).toString(CryptoJS.enc.Hex);",
+                  "pm.request.headers.upsert({ key: 'X-Hub-Signature-256', value: sig });",
+                  "pm.request.headers.upsert({ key: 'X-GitHub-Event', value: 'push' });",
+                  "pm.request.headers.upsert({ key: 'X-GitHub-Delivery', value: 'postman-' + Date.now() });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{baseUrl}}/api/github/webhook",
+            "description": "Requires GITHUB_WEBHOOK_SECRET in backend .env and npm run worker."
+          }
+        }
+      ]
+    }
+  ]
+}
